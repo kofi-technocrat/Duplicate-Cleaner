@@ -1,0 +1,4310 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Duplicate Cleaner</title>
+
+<HTA:APPLICATION
+  APPLICATIONNAME="DuplicateCleaner"
+  ICON="DuplicateCleaner-K.ico"
+  BORDER="thin"
+  CAPTION="yes"
+  SHOWINTASKBAR="yes"
+  SINGLEINSTANCE="yes"
+  SYSMENU="yes"
+/>
+
+<style>
+
+html,
+body{
+    margin:0;
+    padding:0;
+    width:100%;
+    min-width:320px;
+    height:100%;
+    min-height:100vh;
+    overflow:hidden;
+
+    background:
+        radial-gradient(circle at top left, rgba(59,130,246,.18), transparent 30%),
+        linear-gradient(135deg, #0d1726 0%, #111f32 100%);
+    color:#ffffff;
+
+    font-family:"Segoe UI",Arial,sans-serif;
+    font-size:13px;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+.header{
+    height:72px;
+    display:-ms-flexbox;
+    display:flex;
+    -ms-flex-align:center;
+    -ms-flex-pack:justify;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 22px;
+    background:linear-gradient(180deg, #172437 0%, #101c2d 100%);
+    border-bottom:1px solid rgba(176, 196, 224, .22);
+    backdrop-filter:blur(12px);
+    box-shadow:0 10px 30px rgba(2,6,23,.38);
+}
+
+.header-left{
+    display:-ms-flexbox;
+    display:flex;
+    -ms-flex-align:center;
+    align-items:center;
+    gap:12px;
+}
+
+.header-context{
+    display:-ms-flexbox;
+    display:flex;
+    -ms-flex-align:center;
+    align-items:center;
+    gap:10px;
+}
+
+.connection-dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#35d07f;
+    box-shadow:0 0 0 4px rgba(53,208,127,.12);
+}
+
+.brand-mark{
+    width:38px;
+    height:38px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    font-size:14px;
+    background:linear-gradient(135deg, #4f9bff, #6ea8fe);
+    color:#fff;
+    box-shadow:0 10px 22px rgba(37,99,235,.5);
+}
+
+.brand-copy{
+    display:-ms-flexbox;
+    display:flex;
+    -ms-flex-direction:column;
+    flex-direction:column;
+    line-height:1.1;
+}
+
+.logo{
+    font-size:21px;
+    font-weight:700;
+    letter-spacing:0;
+    color:#ffffff;
+}
+
+.brand-subtitle{
+    color:#ffffff;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+}
+
+.user{
+    color:#ffffff;
+    font-size:12px;
+    padding:8px 12px;
+    border-radius:999px;
+    border:1px solid rgba(148,163,184,.18);
+    background:rgba(15,25,39,.5);
+}
+
+.container{
+    display:-ms-flexbox;
+    display:flex;
+    height:calc(100vh - 72px - 32px);
+    min-height:0;
+}
+
+.sidebar{
+    width:240px;
+    min-width:200px;
+    background:linear-gradient(180deg, #162336 0%, #101d2f 100%);
+    border-right:1px solid rgba(176, 196, 224, .22);
+    padding:18px 14px;
+    overflow:auto;
+    backdrop-filter:blur(6px);
+}
+
+.nav-group-label{
+    padding:14px 12px 7px;
+    color:#93a8c2;
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+}
+
+.content{
+    -ms-flex:1 1 auto;
+    flex:1;
+    min-width:0;
+    overflow:auto;
+    padding:24px;
+    background:linear-gradient(180deg, #dfe5ec 0%, #d3d9e0 100%);
+    color:#111827;
+}
+
+.page{
+    animation: fadeIn .25s ease;
+}
+
+.page-heading{
+    display:-ms-flexbox;
+    display:flex;
+    -ms-flex-pack:justify;
+    -ms-flex-align:start;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:20px;
+    margin-bottom:16px;
+}
+
+.page-heading h1{
+    margin:0;
+    color:#142235;
+    font-size:22px;
+    font-weight:700;
+}
+
+.page-heading p{
+    margin:7px 0 0;
+    color:#526174;
+    font-size:12px;
+}
+
+.eyebrow{
+    color:#397856 !important;
+    font-size:9px !important;
+    font-weight:700;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    margin:0 0 7px !important;
+}
+
+.state-pill{
+    display:-ms-inline-flexbox;
+    display:inline-flex;
+    -ms-flex-align:center;
+    align-items:center;
+    gap:8px;
+    padding:7px 10px;
+    border:1px solid #b7c4d1;
+    border-radius:6px;
+    background:#f5f7f9;
+    color:#26384a;
+    font-size:11px;
+    white-space:nowrap;
+}
+
+@keyframes fadeIn {
+    from { opacity:0; transform:translateY(4px); }
+    to { opacity:1; transform:translateY(0); }
+}
+
+.nav-item{
+    display:block;
+    width:100%;
+    padding:12px 14px;
+    border-radius:7px;
+    margin-bottom:4px;
+    cursor:pointer;
+    color:#ffffff;
+    font-weight:600;
+    text-align:left;
+    background:transparent;
+    box-shadow:none;
+    transition:background .16s ease, border-color .16s ease;
+    border:1px solid transparent;
+}
+
+.nav-item:hover{
+    background:rgba(148, 163, 184, .08);
+    color:#ffffff;
+    border-color:rgba(148,163,184,.12);
+    transform:none;
+}
+
+.nav-item.active{
+    background:linear-gradient(135deg, rgba(59,130,246,.22), rgba(96,165,250,.12));
+    border-color:rgba(96,165,250,.45);
+    color:#fff;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 10px 18px rgba(37,99,235,.18);
+}
+
+.cards{
+    display:-ms-flexbox;
+    display:flex;
+    -ms-flex-wrap:wrap;
+    flex-wrap:wrap;
+    gap:16px;
+}
+
+.card{
+    -ms-flex:1 1 180px;
+    flex:1 1 180px;
+    min-width:0;
+    background:linear-gradient(180deg, #1a2b40 0%, #132234 100%);
+    border:1px solid rgba(167, 191, 221, .28);
+    border-radius:8px;
+    padding:20px;
+    transition:all .2s ease;
+    box-shadow:0 18px 48px rgba(2,6,23,.55);
+}
+
+.card .title,
+.card .value,
+.card .subtitle,
+.card *{
+    color:#ffffff;
+}
+
+.card:hover{
+    border-color:rgba(96,165,250,.5);
+    box-shadow:0 15px 34px rgba(15,23,42,.36);
+}
+
+.title{
+    color:#e6eefc;
+    font-size:10px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+}
+
+.value{
+    font-size:28px;
+    margin-top:10px;
+    font-weight:700;
+    letter-spacing:0;
+    color:#fff;
+}
+
+.panel{
+    margin-top:16px;
+    background:linear-gradient(180deg, #1b2d42 0%, #132334 100%);
+    border:1px solid rgba(169, 192, 220, .24);
+    border-radius:8px;
+    padding:18px;
+    box-shadow:0 18px 48px rgba(2,6,23,.55);
+}
+
+.panel h3{
+    margin:0 0 18px;
+    font-size:16px;
+    letter-spacing:0;
+    color:#ffffff;
+}
+
+.panel-note,
+.metric-note{
+    color:#bdcadd;
+    font-size:11px;
+}
+
+.panel-note{
+    margin:-7px 0 16px;
+}
+
+.metric-note{
+    margin-top:7px;
+}
+
+.panel-heading{
+    display:-ms-flexbox;
+    display:flex;
+    -ms-flex-pack:justify;
+    -ms-flex-align:center;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+}
+
+.panel-heading h3{
+    margin-bottom:14px;
+}
+
+.progress-meta{
+    display:-ms-flexbox;
+    display:flex;
+    flex-wrap:wrap;
+    -ms-flex-pack:justify;
+    justify-content:space-between;
+    gap:12px;
+    margin:8px 0 0;
+    color:#d7e1ee;
+    font-size:11px;
+}
+
+.result-toolbar{
+    display:-ms-flexbox;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px;
+    margin-top:14px;
+}
+
+.result-toolbar input,
+.result-toolbar select{
+    width:auto;
+    min-width:150px;
+    flex:1 1 150px;
+    padding:9px 11px;
+    font-size:11px;
+}
+
+.search-filter-grid{
+    display:-ms-flexbox;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:10px;
+}
+
+.search-filter-grid label{
+    -ms-flex:1 1 45%;
+    flex:1 1 45%;
+    min-width:140px;
+    color:#d7e1ee;
+    font-size:10px;
+}
+
+.search-filter-grid input{
+    margin-top:5px;
+    padding:8px 9px;
+    font-size:11px;
+}
+
+.search-filter-grid textarea{
+    display:block;
+    margin-top:5px;
+    font-size:11px;
+}
+
+#largeFilesPage .search-filter-grid label{
+    color:#d7e1ee;
+}
+
+#largeFilesPage .large-file-recovery-actions select{
+    width:auto;
+    min-width:170px;
+    flex:1 1 200px;
+}
+
+#largeFilesPage .large-file-recovery-actions button{
+    flex:0 0 auto;
+}
+
+.result-summary{
+    color:#d7e1ee;
+    font-size:11px;
+}
+
+.group-heading td{
+    background:#203650;
+    color:#fff;
+    font-weight:700;
+    white-space:normal;
+}
+
+.keep-choice,
+.remove-choice{
+    width:auto;
+    margin:0 5px 0 0;
+    vertical-align:middle;
+}
+
+.keep-label{
+    color:#9be9a8;
+    font-size:10px;
+    white-space:normal;
+}
+
+.scan-controls{
+    display:inline-flex;
+    gap:8px;
+    margin-left:auto;
+}
+
+.scan-controls button{
+    padding:7px 11px;
+    font-size:10px;
+}
+
+.selection-summary{
+    color:#d7e1ee;
+    font-size:11px;
+    align-self:center;
+}
+
+.table-wrap{
+    width:100%;
+    overflow:auto;
+}
+
+.empty-state{
+    padding:26px 14px;
+    color:#64748b;
+    text-align:center;
+}
+
+.search-results-table .empty-state{
+    color:#d7e1ee;
+    white-space:normal;
+    text-overflow:clip;
+    height:auto;
+}
+
+.result-table th,
+.result-table td{
+    padding:8px 10px;
+    font-size:11px;
+    line-height:1.35;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.result-table th{
+    font-size:9px;
+}
+
+.duplicate-bulk-choice{
+    display:inline-block;
+    margin-top:6px;
+    font-size:9px;
+    font-weight:400;
+    white-space:nowrap;
+    cursor:pointer;
+}
+
+.duplicate-bulk-choice input{
+    width:auto;
+    margin:0 4px 0 0;
+    vertical-align:middle;
+}
+
+.result-table .name-column{
+    width:145px;
+}
+
+.result-table .size-column{
+    width:72px;
+}
+
+.result-table .hash-column{
+    width:170px;
+}
+
+.result-table .time-column{
+    width:145px;
+}
+
+.result-table .action-column{
+    width:112px;
+}
+
+.search-result-link{
+    color:#ffffff;
+    text-decoration:none;
+}
+
+.search-result-link.path-link{
+    color:#9fd4ff;
+}
+
+.search-result-link:hover{
+    color:#ffffff;
+    text-decoration:underline;
+}
+
+.analysis-grid{
+    display:-ms-flexbox;
+    display:flex;
+    -ms-flex-wrap:wrap;
+    flex-wrap:wrap;
+    gap:1px;
+    overflow:hidden;
+    border:1px solid rgba(169,192,220,.2);
+    border-radius:7px;
+    background:rgba(169,192,220,.2);
+}
+
+.analysis-grid > div{
+    display:-ms-flexbox;
+    display:flex;
+    -ms-flex:1 1 45%;
+    flex:1 1 45%;
+    min-width:0;
+    flex-direction:column;
+    gap:8px;
+    padding:14px 16px;
+    background:#17283c;
+}
+
+.analysis-grid span{
+    color:#b7c6dc;
+    font-size:10px;
+    text-transform:uppercase;
+}
+
+.analysis-grid strong{
+    overflow-wrap:anywhere;
+    color:#fff;
+    font-size:14px;
+    font-weight:600;
+}
+
+.dashboard-panels,
+.workspace-grid{
+    display:-ms-flexbox;
+    display:flex;
+    -ms-flex-wrap:wrap;
+    flex-wrap:wrap;
+    gap:16px;
+    align-items:start;
+}
+
+.dashboard-panels .panel,
+.workspace-grid .panel{
+    -ms-flex:1 1 300px;
+    flex:1 1 300px;
+    min-width:0;
+    margin-top:0;
+}
+
+.dashboard-panels,
+.cards + .workspace-grid{
+    margin-top:16px;
+}
+
+.task-results{
+    -ms-flex:1.5 1 420px !important;
+    flex:1.5 1 420px !important;
+    min-width:0;
+}
+
+.task-controls{
+    -ms-flex:1 1 260px !important;
+    flex:1 1 260px !important;
+}
+
+.task-results .table-wrap{
+    max-height:calc(100vh - 330px);
+    min-height:180px;
+}
+
+.task-results table{
+    margin-top:12px;
+}
+
+.task-results .log{
+    height:150px;
+}
+
+.log-preview{
+    height:auto !important;
+    max-height:360px;
+    min-height:140px;
+    margin:10px 0 0;
+    overflow:auto;
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+    color:#e7eef8;
+}
+
+.task-controls .exclusion-list{
+    height:124px;
+}
+
+textarea.keyword-list{
+    min-height:76px;
+    height:88px;
+    margin-top:1px;
+    margin-bottom: 10px;
+    resize:vertical;
+}
+
+@supports (display:grid){
+    .cards{
+        display:grid;
+        grid-template-columns:repeat(4, minmax(0, 1fr));
+    }
+
+    .analysis-grid{
+        display:grid;
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-panels,
+    .workspace-grid{
+        display:grid;
+        grid-template-columns:minmax(250px, .8fr) minmax(0, 1.45fr);
+    }
+
+    .dashboard-panels .panel,
+    .workspace-grid .panel,
+    .task-controls,
+    .task-results{
+        flex:none;
+    }
+}
+
+.folder-row,
+.action-row,
+.inline-actions{
+    display:-ms-flexbox;
+    display:flex;
+    -ms-flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+}
+
+.folder-row > *,
+.action-row > *,
+.inline-actions > *,
+.result-toolbar > *{
+    margin:0 8px 8px 0;
+}
+
+.folder-row input{
+    -ms-flex:1 1 auto;
+    flex:1;
+    min-width:0;
+}
+
+.folder-row select{
+    width:auto;
+    flex:0 1 190px;
+    min-width:130px;
+}
+.folder-row button{
+    flex:0 0 auto;
+    white-space:nowrap;
+}
+
+input,
+textarea,
+select{
+    width:100%;
+    box-sizing:border-box;
+    background-color:#101d30;
+    background-image:linear-gradient(180deg, #14243a 0%, #101d30 100%);
+    color:#ffffff;
+    border:1px solid #405570;
+    border-radius:7px;
+    padding:9px 11px;
+    font-family:"Segoe UI",Arial,sans-serif;
+    font-size:12px;
+    transition:border-color .16s ease, box-shadow .16s ease, background-color .16s ease;
+}
+
+input::placeholder,
+textarea::placeholder{
+    color:#aebdd0;
+}
+
+select{
+    cursor:pointer;
+}
+
+select option{
+    background-color:#14243a;
+    color:#f2f6fc;
+}
+
+select option:hover{
+    background-color:#24528a;
+    color:#ffffff;
+}
+
+input[type="checkbox"],
+input[type="radio"]{
+    width:auto;
+    padding:0;
+    background:none;
+}
+
+input:hover,
+textarea:hover,
+select:hover{
+    border-color:#6b819e;
+    background-color:#172840;
+    background-image:none;
+}
+
+input:focus,
+textarea:focus,
+select:focus{
+    outline:none;
+    border-color:#68a9f8;
+    box-shadow:0 0 0 2px rgba(59,130,246,.2);
+    background-color:#101d30;
+    background-image:none;
+}
+
+select:focus option:checked,
+select option:checked{
+    background-color:#24528a;
+    color:#ffffff;
+}
+
+button{
+    background:#2563a8;
+    color:#ffffff;
+    border:1px solid #3476bb;
+    border-radius:6px;
+    padding:8px 13px;
+    cursor:pointer;
+    font-family:"Segoe UI",Arial,sans-serif;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0;
+    transition:background-color .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+    box-shadow:0 1px 2px rgba(0,0,0,.16);
+}
+
+.content button:not(.success):not(.danger):not(.warning){
+    background:#263b53;
+    border-color:#526a86;
+    color:#f4f7fb;
+    box-shadow:0 1px 2px rgba(15,23,42,.12);
+}
+
+button:hover{
+    background:#3275b9;
+    border-color:#5594d1;
+    box-shadow:0 2px 5px rgba(15,23,42,.2);
+    transform:translateY(-1px);
+}
+
+.content button:not(.success):not(.danger):not(.warning):hover{
+    background:#344f70;
+    border-color:#6b85a3;
+}
+
+button:focus{
+    outline:2px solid #8bc1ff;
+    outline-offset:2px;
+}
+
+button:active{
+    transform:translateY(0);
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.22);
+}
+
+button:disabled{
+    opacity:.55;
+    cursor:default;
+    transform:none;
+    box-shadow:none;
+    background:#39485b;
+    border-color:#526174;
+}
+
+.success{
+    background:#18794e;
+    border-color:#23895d;
+    box-shadow:0 1px 2px rgba(22,101,52,.2);
+}
+
+.success:hover{
+    background:#20935f;
+    border-color:#35a875;
+}
+
+.danger{
+    background:#a8323e;
+    border-color:#c04a55;
+    box-shadow:0 1px 2px rgba(127,29,29,.2);
+}
+
+.danger:hover{
+    background:#bf3d49;
+    border-color:#d76670;
+}
+
+.warning{
+    background:#93600b;
+    border-color:#b27a16;
+    box-shadow:0 1px 2px rgba(120,73,10,.2);
+}
+
+.warning:hover{
+    background:#aa7210;
+    border-color:#ce9228;
+}
+
+.success:disabled,
+.danger:disabled,
+.warning:disabled{
+    background:#39485b;
+    border-color:#526174;
+}
+
+.progress{
+    width:100%;
+    height:12px;
+    background:rgba(11,18,32,.9);
+    border:1px solid rgba(148,163,184,.15);
+    border-radius:999px;
+    overflow:hidden;
+    margin:6px 0 18px;
+}
+
+.progressbar{
+    width:0%;
+    height:100%;
+    background:linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd);
+    box-shadow:0 0 16px rgba(96,165,250,.55);
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:18px;
+    background:rgba(11,18,32,.2);
+    border-radius:10px;
+    overflow:hidden;
+    table-layout:fixed;
+}
+
+th{
+    text-align:left;
+    background:rgba(15, 23, 42, .9);
+    color:#e6eefc;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    padding:12px 14px;
+    border-bottom:1px solid rgba(148,163,184,.18);
+}
+
+td{
+    padding:12px 14px;
+    border-top:1px solid rgba(148,163,184,.12);
+    color:#ffffff;
+    overflow-wrap:anywhere;
+    word-break:break-word;
+}
+
+tr:hover{
+    background:rgba(148,163,184,.04);
+}
+
+.log{
+    background:linear-gradient(180deg, #0d1726 0%, #101d2f 100%);
+    border:1px solid rgba(178, 201, 230, .24);
+    border-radius:10px;
+    padding:12px 14px;
+    height:220px;
+    overflow:auto;
+    font-family:Consolas, "Courier New", monospace;
+    color:#9be9a8;
+    line-height:1.5;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    font-size:11px;
+}
+
+.statusbar{
+    position:fixed;
+    bottom:0;
+    left:240px;
+    right:0;
+    height:32px;
+    background:rgba(15,23,42,.9);
+    border-top:1px solid rgba(148,163,184,.18);
+    display:flex;
+    align-items:center;
+    padding-left:14px;
+    color:#ffffff;
+    font-size:11px;
+    letter-spacing:.02em;
+    backdrop-filter:blur(8px);
+    z-index:5;
+}
+
+textarea{
+    min-height:220px;
+    resize:vertical;
+}
+
+textarea.exclusion-list{
+    min-height:120px;
+    height:140px;
+    margin-top:8px;
+}
+
+@media (max-width: 900px){
+    html,
+    body{
+        height:auto;
+        min-height:100%;
+        overflow:auto;
+    }
+
+    .header{
+        height:auto;
+        min-height:72px;
+        padding:14px 16px;
+        gap:12px;
+        -ms-flex-align:start;
+        -ms-flex-wrap:wrap;
+        align-items:flex-start;
+        flex-wrap:wrap;
+    }
+
+    .container{
+        display:-ms-flexbox;
+        -ms-flex-direction:column;
+        flex-direction:column;
+        height:auto;
+        min-height:0;
+        overflow:visible;
+        padding-bottom:32px;
+    }
+
+    .sidebar{
+        width:100%;
+        min-width:0;
+        border-right:none;
+        border-bottom:1px solid rgba(148, 163, 184, .18);
+        display:flex;
+        display:-ms-flexbox;
+        -ms-flex-wrap:wrap;
+        flex-wrap:wrap;
+        gap:8px;
+        padding:12px;
+    }
+
+    .nav-group-label{
+        flex:1 0 100%;
+        padding:5px 4px 0;
+    }
+
+    .nav-item{
+        -ms-flex:1 1 140px;
+        flex:1 1 140px;
+        margin-bottom:0;
+    }
+
+    .content{
+        -ms-flex:1 0 auto;
+        flex:1 0 auto;
+        min-height:0;
+        overflow:visible;
+        padding:16px;
+    }
+
+    .dashboard-panels,
+    .workspace-grid{
+        grid-template-columns:minmax(0, 1fr);
+    }
+
+    .dashboard-panels > .panel,
+    .workspace-grid > .panel{
+        -ms-flex:1 1 100%;
+        flex-basis:100%;
+    }
+
+    .task-results .table-wrap{
+        max-height:420px;
+    }
+
+    .card{
+        width:auto;
+    }
+
+    .cards{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+    }
+
+    .card{
+        flex-basis:calc(50% - 8px);
+    }
+
+    .statusbar{
+        left:0;
+        background:#0f172a;
+        box-shadow:0 -4px 12px rgba(2,6,23,.2);
+    }
+}
+
+@media (max-width: 560px){
+    .logo{
+        font-size:18px;
+    }
+
+    .brand-subtitle{
+        letter-spacing:.08em;
+    }
+
+    .user{
+        display:none;
+    }
+
+    .cards{
+        gap:12px;
+    }
+
+    .card{
+        width:100%;
+    }
+
+    .cards{
+        grid-template-columns:1fr;
+    }
+
+    .card{
+        flex-basis:100%;
+    }
+
+    .analysis-grid{
+        grid-template-columns:1fr;
+    }
+
+    .analysis-grid > div{
+        -ms-flex:1 1 100%;
+        flex-basis:100%;
+    }
+
+    .page-heading{
+        -ms-flex-direction:column;
+        flex-direction:column;
+        gap:12px;
+    }
+
+    .folder-row,
+    .inline-actions{
+        -ms-flex-direction:column;
+        -ms-flex-align:stretch;
+        flex-direction:column;
+        align-items:stretch;
+    }
+    .folder-row{
+        -ms-flex-direction:row;
+        flex-direction:row;
+        flex-wrap:nowrap;
+        align-items:stretch;
+    }
+
+    .content{
+        padding:12px;
+    }
+
+    .nav-item{
+        -ms-flex:1 1 100%;
+        flex:1 1 100%;
+    }
+
+    .panel{
+        padding:16px;
+    }
+
+    .page-heading h1{
+        font-size:20px;
+    }
+
+    .page-heading{
+        margin-bottom:12px;
+    }
+
+    .table-wrap table{
+        min-width:560px;
+    }
+
+    .task-results .table-wrap{
+        max-height:360px;
+    }
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+    <div class="header-left">
+        <div class="brand-mark">DC</div>
+        <div class="brand-copy">
+            <div class="logo">Duplicate Cleaner</div>
+            <div class="brand-subtitle">Enterprise Suite</div>
+        </div>
+    </div>
+    <div class="header-context">
+        <span class="connection-dot"></span>
+        <span class="user">Local workstation</span>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="sidebar">
+
+           <div class="nav-group-label">Workspace</div>
+           <button type="button" class="nav-item active" onclick="showPage('dashboardPage',this)">Overview</button>
+           <button type="button" class="nav-item" onclick="showPage('searchPage',this)">File Search</button>
+           <button type="button" class="nav-item" onclick="showPage('duplicatesPage',this)">Duplicates</button>
+           <button type="button" class="nav-item" onclick="showPage('largeFilesPage',this)">Large Files</button>
+
+           <div class="nav-group-label">Records</div>
+           <button type="button" class="nav-item" onclick="showPage('reportsPage',this)">Reports</button>
+           <button type="button" class="nav-item" onclick="showPage('logsPage',this)">Activity Log</button>
+
+    </div>
+
+    <div class="content">
+
+        <!-- DASHBOARD -->
+        <div id="dashboardPage" class="page">
+
+            <div class="page-heading">
+                <div>
+                    <p class="eyebrow">Operations</p>
+                    <h1>Overview</h1>
+                    <p>Review scan results, recovery estimates, and cleanup activity across your selected folders.</p>
+                </div>
+                <span class="state-pill"><span class="connection-dot"></span><span id="operationState">Ready</span></span>
+            </div>
+
+            <div class="cards">
+
+                <div class="card">
+                    <div class="title">Files Scanned</div>
+                    <div class="value" id="filesScanned">0</div>
+                    <div class="metric-note">Last completed scan</div>
+                </div>
+
+                <div class="card">
+                    <div class="title">Duplicates Found</div>
+                    <div class="value" id="duplicatesFound">0</div>
+                    <div class="metric-note">Review candidates</div>
+                </div>
+
+                <div class="card">
+                    <div class="title">Recoverable Space</div>
+                    <div class="value" id="recoverSpace">0 GB</div>
+                    <div class="metric-note">Potentially recoverable</div>
+                </div>
+
+                <div class="card">
+                    <div class="title">Deleted Files</div>
+                    <div class="value" id="deletedFiles">0</div>
+                    <div class="metric-note">Removed this run</div>
+                </div>
+
+            </div>
+
+            <div class="dashboard-panels">
+            <div class="panel">
+                <h3>Latest scan analysis</h3>
+                <p id="scanAnalysisSummary" class="panel-note">Run a duplicate preview to populate analysis for the selected folder.</p>
+                <div class="analysis-grid">
+                    <div><span>Scanned location</span><strong id="scanAnalysisPath">No scan yet</strong></div>
+                    <div><span>Last run</span><strong id="scanAnalysisTime">Not available</strong></div>
+                    <div><span>Duplicate candidates</span><strong id="scanAnalysisDuplicates">0</strong></div>
+                    <div><span>Potential recovery</span><strong id="scanAnalysisSpace">0 B</strong></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>Recent activity</h3>
+                <div id="dashboardLog" class="log">Application ready.</div>
+            </div>
+            </div>
+
+        </div>
+
+        <!-- SEARCH -->
+
+        <div id="searchPage"
+             class="page"
+             style="display:none;">
+
+            <div class="page-heading">
+                <div>
+                    <p class="eyebrow">Workspace</p>
+                    <h1>File Search</h1>
+                    <p>Find files by name or path while honoring your exclusion rules.</p>
+                </div>
+            </div>
+
+            <div class="workspace-grid">
+            <div class="panel task-controls">
+
+                <h3>Search criteria</h3>
+
+                <div class="folder-row">
+                    <input id="searchRoot"
+                           placeholder="Folder to search in">
+                    <button onclick="browseFolderFor('searchRoot','Select Search Folder')">Browse</button>
+                </div>
+                <select id="searchRecentFolders" onchange="chooseRecentFolder('searchRoot','searchRecentFolders')" aria-label="Recent search folders">
+                    <option value="">Recent folders</option>
+                </select>
+
+                <div style="margin-top:12px;">
+                    <h3>Search keywords</h3>
+                    <textarea id="searchText" class="keyword-list"
+                              placeholder="One or more terms; separate with commas, semicolons, or new lines"
+                              onkeydown="if(event.ctrlKey && event.keyCode === 13){searchItems();return false;}"></textarea>
+                    <p class="panel-note">A file is included when its name or path contains any keyword.</p>
+                </div>
+
+                <h3 style="margin-top:16px;">Optional file filters</h3>
+                <div class="search-filter-grid">
+                    <label>Minimum size (MB)<input id="searchMinSize" type="number" min="0" step="any" placeholder="Any size" aria-label="Minimum file size in megabytes"></label>
+                    <label>Maximum size (MB)<input id="searchMaxSize" type="number" min="0" step="any" placeholder="Any size" aria-label="Maximum file size in megabytes"></label>
+                    <label>Extensions<input id="searchExtensions" placeholder="pdf, docx, jpg" aria-label="File extensions"></label>
+                    <label>Modified after<input id="searchModifiedAfter" type="date" aria-label="Modified after date"></label>
+                    <label>Modified before<input id="searchModifiedBefore" type="date" aria-label="Modified before date"></label>
+                </div>
+
+                <div style="margin-top:16px;">
+                    <h3>Exclude from this search</h3>
+                    <textarea id="searchExcluded" class="exclusion-list"
+                              placeholder="One folder path or file/folder pattern per line">.safeq6
+.ms-ad
+*.iso
+*.zip
+*.pst</textarea>
+                </div>
+
+                <div class="inline-actions" style="margin-top:16px;">
+                    <button class="success" onclick="searchItems()">
+                        Search
+                    </button>
+                </div>
+
+            </div>
+
+            <div class="panel task-results">
+                <div class="panel-heading"><h3>Search results</h3></div>
+                <div class="progress" style="margin-top:8px;">
+                    <div id="searchProgressbar" class="progressbar"></div>
+                </div>
+                <div class="progress-meta"><span id="searchProgressMessage">No search run</span><span id="searchMatchCount">0 matches</span><span id="searchFilesChecked">0 files checked</span><span id="searchElapsed">Elapsed 00:00</span><span id="searchProgressPercent">0%</span></div>
+                <div class="scan-controls">
+                    <button id="searchPauseButton" type="button" onclick="togglePauseOperation()" disabled>Pause</button>
+                    <button type="button" onclick="cancelOperation()" disabled id="searchCancelButton">Cancel</button>
+                </div>
+                <div class="result-toolbar">
+                    <input id="searchResultFilter" aria-label="Filter search results by name or path" placeholder="Filter results by name or path" onkeyup="renderSearchResults()">
+                    <select id="searchResultSort" onchange="renderSearchResults()">
+                        <option value="name">Sort by name</option>
+                        <option value="path">Sort by path</option>
+                        <option value="size">Sort by size</option>
+                    </select>
+                    <span id="searchResultSummary" class="result-summary">0 results</span>
+                </div>
+                <div class="inline-actions" style="margin-top:10px;">
+                    <button type="button" onclick="selectVisibleSearchResults(true)">Select visible</button>
+                    <button type="button" onclick="selectVisibleSearchResults(false)">Clear selection</button>
+                    <button type="button" class="success" onclick="exportSearchResults()">Export results CSV</button>
+                </div>
+                <div class="table-wrap">
+                <table class="result-table search-results-table">
+
+                    <thead>
+                    <tr>
+                        <th class="select-column">Select</th>
+                        <th class="name-column">Name</th>
+                        <th>Path</th>
+                        <th class="size-column">Size</th>
+                    </tr>
+                    </thead>
+
+                    <tbody id="searchResults">
+
+                    </tbody>
+
+                </table>
+                </div>
+            </div>
+            </div>
+
+        </div>
+
+        <!-- DUPLICATES -->
+
+        <div id="duplicatesPage"
+             class="page"
+             style="display:none;">
+
+            <div class="page-heading">
+                <div>
+                    <p class="eyebrow">Workspace</p>
+                    <h1>Duplicates</h1>
+                    <p>Preview duplicate candidates before choosing whether to remove them.</p>
+                </div>
+            </div>
+
+            <div class="workspace-grid">
+            <div class="panel task-controls">
+
+                <h3>Scan criteria</h3>
+                <p class="panel-note">The folder and exclusions below apply only to duplicate detection.</p>
+
+                <div class="folder-row">
+                    <input id="duplicatesRoot"
+                           placeholder="Folder to scan for duplicates">
+                    <button onclick="browseFolderFor('duplicatesRoot','Select Duplicate Folder')">Browse</button>
+                </div>
+                <select id="duplicatesRecentFolders" onchange="chooseRecentFolder('duplicatesRoot','duplicatesRecentFolders')" aria-label="Recent duplicate scan folders">
+                    <option value="">Recent folders</option>
+                </select>
+
+                <h3 style="margin-top:18px;">Duplicate keywords</h3>
+                <textarea id="duplicateSearchTerms" class="keyword-list"
+                          placeholder="Optional: one or more terms; separate with commas, semicolons, or new lines"></textarea>
+                <p class="panel-note">Matching files are scanned, reported, and considered for deletion; nonmatching duplicates are preserved.</p>
+
+                <h3 style="margin-top:20px;">Exclude from duplicate scan</h3>
+                <textarea id="duplicatesExcluded" class="exclusion-list"
+                          placeholder="One folder path or file/folder pattern per line">.safeq6
+.ms-ad
+*.iso
+*.zip
+*.pst</textarea>
+
+                <div class="inline-actions" style="margin-top:16px;">
+                    <button class="success" onclick="runScan('duplicatesRoot')">Scan for duplicates</button>
+                </div>
+
+                <h3 style="margin-top:20px;">Scan profiles</h3>
+                <p class="panel-note">Save reusable folders, exclusions, file filters, duplicate terms, and cleanup preferences.</p>
+                <select id="scanProfileSelect" aria-label="Saved scan profile" onchange="applyScanProfile()">
+                    <option value="">Choose a saved profile</option>
+                </select>
+                <div class="inline-actions">
+                    <input id="scanProfileName" placeholder="Profile name" aria-label="Profile name">
+                    <button type="button" onclick="saveScanProfile()">Save profile</button>
+                    <button type="button" class="danger" onclick="deleteScanProfile()">Delete profile</button>
+                </div>
+            </div>
+
+            <div class="panel task-results">
+                <div class="panel-heading"><h3>Duplicate candidates</h3></div>
+
+                <div class="progress" style="margin-top:16px;">
+                    <div id="progressbar"
+                         class="progressbar">
+                    </div>
+                </div>
+                <div class="progress-meta"><span id="duplicateProgressMessage">No scan run</span><span id="duplicateCountStatus">0 duplicates</span><span id="duplicateFilesChecked">0 files checked</span><span id="duplicateElapsed">Elapsed 00:00</span><span id="duplicateProgressPercent">0%</span></div>
+                <div class="scan-controls">
+                    <button id="duplicatePauseButton" type="button" onclick="togglePauseOperation()" disabled>Pause</button>
+                    <button id="duplicateCancelButton" type="button" onclick="cancelOperation()" disabled>Cancel</button>
+                </div>
+                <div class="result-toolbar">
+                    <input id="duplicateResultFilter" aria-label="Filter duplicate groups by name or path" placeholder="Filter groups by name or path" onkeyup="handleDuplicateFilterChanged()">
+                    <select id="duplicateResultSort" onchange="renderDuplicateResults()">
+                        <option value="path">Sort by path</option>
+                        <option value="size">Sort by size</option>
+                    </select>
+                    <span id="duplicateResultSummary" class="result-summary">0 groups</span>
+                    <span id="duplicateSelectionSummary" class="selection-summary">0 selected; 0 total</span>
+                </div>
+
+                <div class="table-wrap">
+                <table class="result-table">
+                    <thead>
+                    <tr>
+                        <th>Keep<br><label class="duplicate-bulk-choice"><input id="duplicateKeepAll" type="checkbox" aria-label="Select all recommended keep copies" title="Use the recommended keep copy for every visible duplicate group" onchange="applyVisibleDuplicateKeepDefaults(this.checked)">Select all</label></th>
+                        <th>Remove<br><label class="duplicate-bulk-choice"><input id="duplicateRemoveAll" type="checkbox" aria-label="Select all removable duplicate copies" title="Select or clear every removable copy in the visible duplicate groups" onchange="selectVisibleDuplicateRemovals(this.checked)">Select all</label></th>
+                        <th>File name and path</th>
+                        <th class="size-column">Size</th>
+                        <th class="hash-column">SHA-256</th>
+                    </tr>
+                    </thead>
+                    <tbody id="duplicateResults">
+                    </tbody>
+                </table>
+                </div>
+
+                <div class="inline-actions" style="margin-top:16px;">
+                    <button class="success" onclick="runReports('duplicatesRoot')">Export CSV</button>
+                    <select id="cleanupMethod" onchange="saveSettings();updateDuplicateCleanupPreview()">
+                        <option value="recycle">Move to Recycle Bin</option>
+                        <option value="quarantine">Move to quarantine</option>
+                        <option value="permanent">Permanently delete</option>
+                    </select>
+                    <button id="deleteDuplicatesButton" class="danger" onclick="deleteSelected()" disabled>Remove selected files</button>
+                </div>
+                <p id="cleanupPreviewSummary" class="panel-note">Select duplicate copies to preview the estimated recovery.</p>
+                <div class="inline-actions">
+                    <label for="recycleBinScope">Empty Recycle Bin on</label>
+                    <select id="recycleBinScope" aria-label="Recycle Bin drive scope" onchange="saveSettings();updateRecycleBinScopeSummary()">
+                        <option value="scanDrive">Drive containing the duplicate scan folder</option>
+                        <option value="allDrives">All drives</option>
+                    </select>
+                    <button id="emptyRecycleBinButton" type="button" class="danger" onclick="emptyRecycleBin()">Empty Recycle Bin</button>
+                </div>
+                <div class="inline-actions">
+                    <span id="recycleBinScopeSummary" class="panel-note">Scope follows the drive containing the selected duplicate scan folder.</span>
+                </div>
+                <h3 style="margin-top:24px;">Quarantine recovery</h3>
+                <p class="panel-note">Review quarantined copies and restore them to their original locations. Existing files are never overwritten.</p>
+                <div class="inline-actions">
+                    <button type="button" onclick="loadQuarantineBatches()">Refresh quarantine</button>
+                    <select id="quarantineBatchSelect" onchange="showQuarantineBatch(this.value)" aria-label="Quarantine batch"></select>
+                    <select id="restoreConflictMode" aria-label="Restore behavior when original file exists">
+                        <option value="rename">Restore using a new name</option>
+                        <option value="skip">Skip existing paths</option>
+                    </select>
+                    <button type="button" class="success" onclick="restoreSelectedQuarantine()">Restore selected</button>
+                </div>
+                <p id="quarantineSummary" class="panel-note">Quarantine has not been loaded.</p>
+                <div class="table-wrap">
+                    <table class="result-table">
+                        <thead><tr><th>Select</th><th>Status</th><th>Original location</th><th>Quarantined copy</th><th>Size</th></tr></thead>
+                        <tbody id="quarantineResults"></tbody>
+                    </table>
+                </div>
+            </div>
+            </div>
+
+        </div>
+
+        <!-- LARGE FILES -->
+        <div id="largeFilesPage" class="page" style="display:none;">
+            <div class="page-heading">
+                <div>
+                    <p class="eyebrow">Space recovery</p>
+                    <h1>Large Files</h1>
+                    <p>Find large files for review. Cloud-only placeholders are informational and linked files are flagged because removing them may not free disk space.</p>
+                </div>
+            </div>
+            <div class="workspace-grid">
+                <div class="panel task-controls">
+                    <h3>Scan criteria</h3>
+                    <div class="folder-row">
+                        <input id="largeFilesRoot" placeholder="Folder to search for large files">
+                        <button type="button" onclick="browseFolderFor('largeFilesRoot','Select Large File Folder')">Browse</button>
+                    </div>
+                    <div class="search-filter-grid">
+                        <label>Minimum size (MB)<input id="largeFilesMinSize" type="number" min="0" step="any" value="100" aria-label="Minimum large-file size in megabytes"></label>
+                        <label>Maximum size (MB, optional)<input id="largeFilesMaxSize" type="number" min="0" step="any" placeholder="No maximum" aria-label="Maximum large-file size in megabytes"></label>
+                        <label>Exclude folders and patterns<textarea id="largeFilesExcluded" class="exclusion-list" placeholder="One folder path or file/folder pattern per line"></textarea></label>
+                    </div>
+                    <div class="inline-actions">
+                        <button type="button" class="success" onclick="runLargeFileScan()">Find large files</button>
+                    </div>
+                    <h3 style="margin-top:20px;">Recovery method</h3>
+                    <div class="inline-actions large-file-recovery-actions">
+                        <select id="largeFileCleanupMethod" onchange="saveSettings()">
+                            <option value="recycle">Move to Recycle Bin</option>
+                            <option value="quarantine">Move to quarantine</option>
+                            <option value="permanent">Permanently delete</option>
+                        </select>
+                        <button id="removeLargeFilesButton" type="button" class="danger" onclick="removeSelectedLargeFiles()" disabled>Remove selected files</button>
+                    </div>
+                    <p id="largeFileSelectionSummary" class="panel-note">0 selected; estimated reclaim 0 B.</p>
+                </div>
+                <div class="panel task-results">
+                    <div class="panel-heading"><h3>Large files</h3></div>
+                    <div class="progress" style="margin-top:8px;"><div id="largeFilesProgressbar" class="progressbar"></div></div>
+                    <div class="progress-meta"><span id="largeFilesProgressMessage">No scan run</span><span id="largeFilesCount">0 files</span><span id="largeFilesChecked">0 files checked</span><span id="largeFilesElapsed">Elapsed 00:00</span><span id="largeFilesProgressPercent">0%</span></div>
+                    <div class="scan-controls">
+                        <button id="largeFilesPauseButton" type="button" onclick="togglePauseOperation()" disabled>Pause</button>
+                        <button id="largeFilesCancelButton" type="button" onclick="cancelOperation()" disabled>Cancel</button>
+                    </div>
+                    <div class="result-toolbar">
+                        <input id="largeFilesFilter" aria-label="Filter large-file results by name or path" placeholder="Filter files by name or path" onkeyup="renderLargeFileResults()">
+                        <select id="largeFilesSort" onchange="renderLargeFileResults()">
+                            <option value="size-desc">Largest first</option>
+                            <option value="size-asc">Smallest first</option>
+                            <option value="path">Sort by path</option>
+                        </select>
+                        <span id="largeFilesSummary" class="result-summary">0 files</span>
+                    </div>
+                    <div class="inline-actions">
+                        <button type="button" onclick="selectVisibleLargeFiles(true)">Select visible</button>
+                        <button type="button" onclick="selectVisibleLargeFiles(false)">Clear selection</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="result-table">
+                            <thead><tr><th>Select</th><th>Name and path</th><th class="size-column">Size</th><th>Hard links</th><th>Storage status</th><th>Modified</th></tr></thead>
+                            <tbody id="largeFilesResults"></tbody>
+                        </table>
+                    </div>
+                    <p class="panel-note">Estimated reclaim excludes hard-linked files unless removing the last link is confirmed at cleanup. Available-space change is measured after cleanup and may be affected by other disk activity.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- REPORTS -->
+
+        <div id="reportsPage"
+             class="page"
+             style="display:none;">
+
+            <div class="page-heading">
+                <div>
+                    <p class="eyebrow">Records</p>
+                    <h1>Reports</h1>
+                    <p>Generate and review a CSV of duplicate candidates for a selected folder.</p>
+                </div>
+            </div>
+
+            <div class="cards">
+                <div class="card"><div class="title">Report candidates</div><div class="value" id="reportDuplicateCount">0</div><div class="metric-note">In the latest report</div></div>
+                <div class="card"><div class="title">Potential recovery</div><div class="value" id="reportRecoverable">0 B</div><div class="metric-note">From listed duplicates</div></div>
+                <div class="card"><div class="title">Report status</div><div class="value" id="reportStatus">Not run</div><div class="metric-note" id="reportGeneratedAt">No report in this session</div></div>
+            </div>
+
+            <div class="workspace-grid">
+                <div class="panel task-controls">
+                    <h3>Report source</h3>
+                    <div class="folder-row">
+                        <input id="reportsRoot" placeholder="Folder to generate report for">
+                        <button onclick="browseFolderFor('reportsRoot','Select Report Folder')">Browse</button>
+                    </div>
+                    <div class="inline-actions" style="margin-top:16px;">
+                        <button class="success" onclick="runReports('reportsRoot')">Generate CSV</button>
+                        <button id="openReportButton" onclick="openReportFile()" disabled>Open CSV</button>
+                    </div>
+                    <h3 style="margin-top:20px;">Export destination</h3>
+                    <p class="panel-note">Choose where generated CSV reports are saved. Leave blank to use the application Reports folder.</p>
+                    <div class="folder-row">
+                        <input id="reportsOutputFolder" placeholder="Optional report output folder">
+                        <button onclick="browseFolderFor('reportsOutputFolder','Select Report Output Folder')">Browse</button>
+                    </div>
+                </div>
+
+                <div class="panel task-results">
+                    <div class="panel-heading"><h3>Report results</h3></div>
+                    <div class="progress" style="margin-top:8px;"><div id="reportProgressbar" class="progressbar"></div></div>
+                    <div class="progress-meta"><span id="reportProgressMessage">No report run</span><span id="reportProgressPercent">0%</span></div>
+                    <p id="reportLocation" class="panel-note" style="margin-top:18px;">No report generated in this session.</p>
+                    <div class="table-wrap"><table class="result-table"><thead><tr><th>Duplicate path</th><th class="size-column">Size</th><th class="hash-column">SHA-256</th></tr></thead><tbody id="reportResults"></tbody></table></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- LOGS -->
+
+        <div id="logsPage"
+             class="page"
+             style="display:none;">
+
+            <div class="page-heading">
+                <div>
+                    <p class="eyebrow">Records</p>
+                    <h1>Activity Log</h1>
+                    <p>Review operation logs saved beside the application.</p>
+                </div>
+            </div>
+
+            <div class="cards">
+                <div class="card"><div class="title">Log files</div><div class="value" id="logFileCount">0</div><div class="metric-note">Available in selected folder</div></div>
+                <div class="card"><div class="title">Most recent log</div><div class="value" id="latestLogName">None</div><div class="metric-note" id="latestLogDate">Load logs to inspect activity</div></div>
+            </div>
+
+            <div class="workspace-grid">
+                <div class="panel task-controls">
+                    <h3>Activity source</h3>
+                    <div class="folder-row">
+                        <input id="logsRoot" placeholder="Folder containing logs">
+                        <button onclick="browseFolderFor('logsRoot','Select Log Folder')">Browse</button>
+                    </div>
+                    <div class="inline-actions" style="margin-top:16px;">
+                        <button class="success" onclick="runLogAction('logsRoot')">Load logs</button>
+                    </div>
+                </div>
+
+                <div class="panel task-results">
+                    <div class="panel-heading"><h3>Log files</h3></div>
+                    <div class="progress" style="margin-top:8px;"><div id="logsProgressbar" class="progressbar"></div></div>
+                    <div class="progress-meta"><span id="logsProgressMessage">No log lookup run</span><span id="logsProgressPercent">0%</span></div>
+                    <div class="table-wrap"><table class="result-table"><thead><tr><th>Log file</th><th class="time-column">Last modified</th><th class="action-column">Action</th></tr></thead><tbody id="logsResults"></tbody></table></div>
+                    <h3 style="margin-top:18px;">Selected log contents: <span id="selectedLogName">No log selected</span></h3>
+                    <pre id="selectedLogContent" class="log log-preview">Select a log file above to view its contents.</pre>
+                    <h3 style="margin-top:18px;">Recent application activity</h3>
+                    <div id="log" class="log">Ready...</div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="statusText" class="statusbar">Ready</div>
+
+</div>
+
+<script>
+
+function writeLog(msg)
+{
+    var targets = [
+        document.getElementById("dashboardLog"),
+        document.getElementById("log")
+    ];
+
+    for(var i = 0; i < targets.length; i++)
+    {
+        if(!targets[i]) continue;
+        targets[i].innerHTML += "<div>" + escapeHtml(msg) + "</div>";
+        targets[i].scrollTop = targets[i].scrollHeight;
+    }
+
+    appendOperationLog(msg);
+}
+
+function getApplicationLogDirectory()
+{
+    return (new ActiveXObject("WScript.Shell").ExpandEnvironmentStrings("%LOCALAPPDATA%")) + "\\DuplicateCleaner\\Logs";
+}
+
+function ensureApplicationLogDirectory()
+{
+    var fso = new ActiveXObject("Scripting.FileSystemObject");
+    var appDirectory = (new ActiveXObject("WScript.Shell").ExpandEnvironmentStrings("%LOCALAPPDATA%")) + "\\DuplicateCleaner";
+    var directory = getApplicationLogDirectory();
+
+    if(!fso.FolderExists(appDirectory))
+        fso.CreateFolder(appDirectory);
+    if(!fso.FolderExists(directory))
+        fso.CreateFolder(directory);
+
+    return directory;
+}
+
+function ensureApplicationQuarantineDirectory()
+{
+    var fso = new ActiveXObject("Scripting.FileSystemObject");
+    var appDirectory = (new ActiveXObject("WScript.Shell").ExpandEnvironmentStrings("%LOCALAPPDATA%")) + "\\DuplicateCleaner";
+    var directory = appDirectory + "\\Quarantine";
+    if(!fso.FolderExists(appDirectory))
+        fso.CreateFolder(appDirectory);
+    if(!fso.FolderExists(directory))
+        fso.CreateFolder(directory);
+    return directory;
+}
+
+function appendUtf8File(path, text)
+{
+    var stream = new ActiveXObject("ADODB.Stream");
+    stream.Type = 2;
+    stream.Charset = "utf-8";
+    stream.Open();
+
+    if(new ActiveXObject("Scripting.FileSystemObject").FileExists(path))
+    {
+        stream.LoadFromFile(path);
+        stream.Position = stream.Size;
+    }
+
+    stream.WriteText(String(text) + "\r\n");
+    stream.SaveToFile(path, 2);
+    stream.Close();
+}
+
+function startOperationLog(mode, rootFolder, details)
+{
+    try
+    {
+        var directory = ensureApplicationLogDirectory();
+        var now = new Date();
+        var stamp = now.getFullYear() + padNumber(now.getMonth() + 1) + padNumber(now.getDate()) + "_" +
+            padNumber(now.getHours()) + padNumber(now.getMinutes()) + padNumber(now.getSeconds()) + "_" + padNumber(now.getMilliseconds(), 3);
+        currentOperationLogPath = new ActiveXObject("Scripting.FileSystemObject").BuildPath(directory, "DuplicateCleanup_" + mode + "_" + stamp + ".log");
+        appendUtf8File(currentOperationLogPath, "Operation: " + mode);
+        appendUtf8File(currentOperationLogPath, "Started: " + now.toLocaleString());
+        appendUtf8File(currentOperationLogPath, "Folder: " + rootFolder);
+        if(details)
+            appendUtf8File(currentOperationLogPath, details);
+        return true;
+    }
+    catch(e)
+    {
+        currentOperationLogPath = "";
+        updateStatus("Unable to create operation log");
+        return false;
+    }
+}
+
+function appendOperationLog(message)
+{
+    if(!currentOperationLogPath) return;
+
+    try
+    {
+        appendUtf8File(currentOperationLogPath, new Date().toLocaleTimeString() + "  " + message);
+    }
+    catch(e)
+    {
+        currentOperationLogPath = "";
+        updateStatus("Operation log write failed");
+    }
+}
+
+function logFailedOperation(mode, rootFolder, message, details)
+{
+    if(mode !== "Logs" && startOperationLog(mode, rootFolder || "", details || ""))
+        appendOperationLog("ERROR: " + message);
+}
+
+function padNumber(value, length)
+{
+    var padded = String(value);
+    while(padded.length < (length || 2)) padded = "0" + padded;
+    return padded;
+}
+
+function escapeHtml(value)
+{
+    return String(value === null || value === undefined ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function formatBytes(value)
+{
+    var bytes = Number(value) || 0;
+    if(bytes < 1024) return bytes + " B";
+    if(bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+    if(bytes < 1073741824) return (bytes / 1048576).toFixed(1) + " MB";
+    return (bytes / 1073741824).toFixed(2) + " GB";
+}
+
+function setEmptyRow(targetId, columns, message)
+{
+    var target = document.getElementById(targetId);
+    if(target)
+        target.innerHTML = '<tr><td class="empty-state" colspan="' + columns + '">' + escapeHtml(message) + '</td></tr>';
+}
+
+function renderResultData(data)
+{
+    var rows = data.rows || [];
+    if(!(rows instanceof Array)) rows = [rows];
+
+    if(data.mode === "EmptyRecycleBin")
+    {
+        var recycleBinMessage = data.emptied ?
+            "Recycle Bin emptied for " + (data.scope || "the selected scope") + ". Items were permanently deleted." :
+            "Recycle Bin was not emptied.";
+        updateStatus(recycleBinMessage);
+        writeLog(recycleBinMessage);
+        return;
+    }
+
+    if(data.mode === "LargeFiles")
+    {
+        latestLargeFiles = rows;
+        largeFileSelectedPaths = {};
+        setText("largeFilesCount", (data.resultCount || 0) + " files");
+        renderLargeFileResults();
+        var largeScanMessage = "Found " + (data.resultCount || 0) + " large files totaling " + formatBytes(data.totalBytes || 0) + ".";
+        if(data.cloudPlaceholderCount)
+            largeScanMessage += " " + data.cloudPlaceholderCount + " cloud placeholder(s) are informational only.";
+        if(data.scanErrorCount)
+            largeScanMessage += " " + data.scanErrorCount + " item(s) could not be checked; review the log.";
+        setText("largeFilesProgressMessage", largeScanMessage);
+        return;
+    }
+
+    if(data.mode === "Search")
+    {
+        latestSearchRows = rows;
+        searchSelectedPaths = {};
+        setText("searchMatchCount", (data.resultCount || rows.length) + " matches");
+        renderSearchResults();
+        return;
+    }
+    if(data.mode === "Scan")
+    {
+        latestScanData = data;
+        setText("filesScanned", data.filesScanned || 0);
+        setText("duplicatesFound", data.duplicateCount || 0);
+        setText("duplicateCountStatus", (data.duplicateCount || 0) + " duplicates");
+        setText("recoverSpace", formatBytes(data.recoverableBytes));
+        setText("deletedFiles", data.deletedCount || 0);
+        var scanErrors = Number(data.scanErrorCount) || 0;
+        var scanSummary = data.duplicateCount ? "Analysis complete. Review the duplicate candidates before deletion." : "Analysis complete. No duplicate candidates were found.";
+        if(scanErrors)
+            scanSummary += " " + scanErrors + " item(s) could not be fully checked; review the operation log before cleanup.";
+        if(data.cloudPlaceholderCount)
+            scanSummary += " " + data.cloudPlaceholderCount + " cloud placeholder(s) were skipped to avoid fetching online-only content.";
+        setText("scanAnalysisSummary", scanSummary);
+        setText("scanAnalysisPath", data.rootFolder || "Selected folder");
+        setText("scanAnalysisTime", data.completedAt || "Just completed");
+        setText("scanAnalysisDuplicates", data.duplicateCount || 0);
+        setText("scanAnalysisSpace", formatBytes(data.recoverableBytes));
+
+        latestDuplicateGroups = data.groups || [];
+        if(!(latestDuplicateGroups instanceof Array)) latestDuplicateGroups = [latestDuplicateGroups];
+        duplicateSelectedPaths = {};
+        var keepAllCheckbox = document.getElementById("duplicateKeepAll");
+        if(keepAllCheckbox) keepAllCheckbox.checked = false;
+        renderDuplicateResults();
+        return;
+    }
+
+    if(data.mode === "Cleanup")
+    {
+        var removedPaths = data.removedPaths || [];
+        if(!(removedPaths instanceof Array)) removedPaths = [removedPaths];
+        if(data.cleanupKind === "largefiles")
+        {
+            for(var lp = latestLargeFiles.length - 1; lp >= 0; lp--)
+            {
+                for(var lr = 0; lr < removedPaths.length; lr++)
+                    if(latestLargeFiles[lp].FullName === removedPaths[lr])
+                    {
+                        delete largeFileSelectedPaths[removedPaths[lr]];
+                        latestLargeFiles.splice(lp, 1);
+                        break;
+                    }
+            }
+            renderLargeFileResults();
+            var largeCleanupSummary = data.deletedCount + " file(s) processed; " + formatBytes(data.recoverableBytes || 0) + " removed from the selected folder. ";
+            if(data.recoveryMode === "permanent")
+                largeCleanupSummary += data.sourceVolumeSpaceChangeBytes === null || data.sourceVolumeSpaceChangeBytes === undefined ?
+                    "Available-space change could not be measured." :
+                    "Measured free-space change on the source volume: " + formatBytes(data.sourceVolumeSpaceChangeBytes) + ".";
+            else if(data.recoveryMode === "recycle")
+                largeCleanupSummary += "Space may not be available until that drive's Recycle Bin is emptied.";
+            else
+                largeCleanupSummary += "Quarantine may use storage on the same drive.";
+            if(data.failedCount) largeCleanupSummary += " " + data.failedCount + " file(s) failed; see the operation log.";
+            setText("largeFileSelectionSummary", largeCleanupSummary);
+            return;
+        }
+        for(var g = latestDuplicateGroups.length - 1; g >= 0; g--)
+        {
+            var groupFiles = latestDuplicateGroups[g].files || [];
+            for(var f = groupFiles.length - 1; f >= 0; f--)
+            {
+                for(var r = 0; r < removedPaths.length; r++)
+                {
+                    if(groupFiles[f].Path === removedPaths[r])
+                    {
+                        delete duplicateSelectedPaths[groupFiles[f].Path];
+                        groupFiles.splice(f, 1);
+                        break;
+                    }
+                }
+            }
+            if(groupFiles.length < 2)
+                latestDuplicateGroups.splice(g, 1);
+        }
+        setText("deletedFiles", data.deletedCount || 0);
+        var cleanupSummary = data.cancelled ? "Cleanup cancelled after processing " + (data.deletedCount || 0) + " selected file(s). " : "Cleanup complete. " + (data.deletedCount || 0) + " selected files processed. ";
+        if(data.recoveryMode === "permanent")
+            cleanupSummary += "Permanently deleted " + formatBytes(data.recoverableBytes || 0) + "; measured source-volume free-space change: " + (data.sourceVolumeSpaceChangeBytes === null || data.sourceVolumeSpaceChangeBytes === undefined ? "unavailable" : formatBytes(data.sourceVolumeSpaceChangeBytes)) + ".";
+        else if(data.recoveryMode === "quarantine")
+            cleanupSummary += formatBytes(data.recoverableBytes || 0) + " moved to quarantine: " + (data.quarantinePath || "location unavailable") + ". This may not free space if quarantine is on the same drive.";
+        else
+            cleanupSummary += formatBytes(data.recoverableBytes || 0) + " moved to the Recycle Bin. Space may not be available until it is emptied.";
+        if(data.failedCount)
+            cleanupSummary += " " + data.failedCount + " file(s) could not be moved; see the operation log.";
+        setText("scanAnalysisSummary", cleanupSummary);
+        var remainingDuplicates = renderDuplicateResults();
+        setText("duplicateCountStatus", remainingDuplicates + " duplicates remaining");
+        setText("duplicatesFound", remainingDuplicates);
+        setText("scanAnalysisDuplicates", remainingDuplicates);
+        if(latestScanData)
+        {
+            latestScanData.recoverableBytes = getDuplicateCandidateReclaimEstimate();
+            setText("recoverSpace", formatBytes(latestScanData.recoverableBytes));
+            setText("scanAnalysisSpace", formatBytes(latestScanData.recoverableBytes));
+        }
+        return;
+    }
+
+    if(data.mode === "Reports")
+    {
+        latestReportPath = data.reportPath || "";
+        var openButton = document.getElementById("openReportButton");
+        if(openButton) openButton.disabled = !latestReportPath;
+        var reportErrors = Number(data.scanErrorCount) || 0;
+        setText("reportLocation", "CSV saved to: " + (data.reportPath || "") + (reportErrors ? " " + reportErrors + " item(s) could not be checked; review the operation log." : ""));
+        setText("reportDuplicateCount", data.duplicateCount || 0);
+        setText("reportRecoverable", formatBytes(data.recoverableBytes));
+        setText("reportStatus", reportErrors ? "Ready with warnings" : "Ready");
+        setText("reportGeneratedAt", data.createdAt || "Generated this session");
+        var reportRows = "";
+        for(var k = 0; k < rows.length; k++)
+        {
+            reportRows += "<tr><td title=\"" + escapeHtml(rows[k].Path) + "\">" + escapeHtml(rows[k].Path) + "</td><td title=\"" + escapeHtml(rows[k].Length) + " bytes\">" + formatBytes(rows[k].Length) + "</td><td title=\"" + escapeHtml(rows[k].Hash) + "\">" + escapeHtml(rows[k].Hash) + "</td></tr>";
+        }
+        document.getElementById("reportResults").innerHTML = reportRows || '<tr><td class="empty-state" colspan="3">No duplicate candidates to report.</td></tr>';
+        return;
+    }
+
+    if(data.mode === "Logs")
+    {
+        latestLogRows = rows;
+        setText("logFileCount", rows.length);
+        var newestLog = rows.length ? rows[0] : null;
+        var newestName = newestLog ? (newestLog.FullName || "").split(/[\\/]/).pop() : "None";
+        setText("latestLogName", newestName);
+        setText("latestLogDate", newestLog ? newestLog.LastWriteTime : "No logs found in this folder");
+        var logRows = "";
+        for(var m = 0; m < rows.length; m++)
+        {
+            logRows += "<tr><td title=\"" + escapeHtml(rows[m].FullName) + "\">" + escapeHtml(rows[m].FullName) + "</td><td title=\"" + escapeHtml(rows[m].LastWriteTime) + "\">" + escapeHtml(rows[m].LastWriteTime) + "</td><td><button type=\"button\" onclick=\"viewLogFile(" + m + ")\">View</button> <button type=\"button\" onclick=\"openLogFile(" + m + ")\">Open</button></td></tr>";
+        }
+        document.getElementById("logsResults").innerHTML = logRows || '<tr><td class="empty-state" colspan="3">No log files found.</td></tr>';
+        if(rows.length)
+            viewLogFile(0);
+        else
+        {
+            setText("selectedLogName", "No log selected");
+            setText("selectedLogContent", "No operation logs were found in this folder.");
+        }
+    }
+
+    if(data.mode === "ListQuarantine")
+    {
+        latestQuarantineRows = rows;
+        quarantineSelectedPaths = {};
+        renderQuarantineBatches(data.batches || []);
+        return;
+    }
+
+    if(data.mode === "Restore")
+    {
+        var restoreSummary = "Restored " + (data.restoredCount || 0) + "; skipped " + (data.skippedCount || 0) + "; failed " + (data.failedCount || 0) + ".";
+        if(data.cancelled) restoreSummary = "Restore cancelled. " + restoreSummary;
+        setText("quarantineSummary", restoreSummary + " Refresh the list to update available entries.");
+        var restoreRows = "";
+        for(var restoreIndex = 0; restoreIndex < rows.length; restoreIndex++)
+        {
+            restoreRows += "<tr><td></td><td>" + escapeHtml(rows[restoreIndex].status) + "</td><td title=\"" + escapeHtml(rows[restoreIndex].destination) + "\">" + escapeHtml(rows[restoreIndex].destination) + "</td><td title=\"" + escapeHtml(rows[restoreIndex].path) + "\">" + escapeHtml(rows[restoreIndex].path) + "</td><td>" + escapeHtml(rows[restoreIndex].message) + "</td></tr>";
+        }
+        document.getElementById("quarantineResults").innerHTML = restoreRows || '<tr><td class="empty-state" colspan="5">No restore results.</td></tr>';
+    }
+}
+
+function renderSearchResults()
+{
+    var target = document.getElementById("searchResults");
+    if(!target) return;
+
+    var rows = latestSearchRows.slice(0);
+    var filterField = document.getElementById("searchResultFilter");
+    var sortField = document.getElementById("searchResultSort");
+    var filter = filterField ? (filterField.value || "").toLowerCase() : "";
+    var sort = sortField ? sortField.value : "name";
+    rows.sort(function(left, right){
+        var a = sort === "size" ? Number(left.Length) || 0 : sort === "path" ? (left.FullName || "").toLowerCase() : ((left.FullName || "").split(/[\\/]/).pop() || "").toLowerCase();
+        var b = sort === "size" ? Number(right.Length) || 0 : sort === "path" ? (right.FullName || "").toLowerCase() : ((right.FullName || "").split(/[\\/]/).pop() || "").toLowerCase();
+        if(a < b) return -1;
+        if(a > b) return 1;
+        return 0;
+    });
+
+    var resultRows = "";
+    var visibleCount = 0;
+    for(var i = 0; i < rows.length; i++)
+    {
+        var searchRow = rows[i];
+        var path = searchRow.FullName || "";
+        var name = path.split(/[\\/]/).pop();
+        if(filter && path.toLowerCase().indexOf(filter) < 0 && name.toLowerCase().indexOf(filter) < 0)
+            continue;
+
+        var originalIndex = latestSearchRows.indexOf ? latestSearchRows.indexOf(searchRow) : i;
+        if(originalIndex < 0) originalIndex = i;
+        var selected = searchSelectedPaths[path] ? " checked" : "";
+        resultRows += "<tr><td><input class=\"keep-choice\" type=\"checkbox\" aria-label=\"Select " + escapeHtml(name) + "\" onchange=\"toggleSearchSelection(" + originalIndex + ",this.checked)\"" + selected + "></td><td title=\"" + escapeHtml(name) + "\"><a class=\"search-result-link\" href=\"#\" title=\"Open file\" onclick=\"openSearchTarget(" + originalIndex + ",false);return false;\">" + escapeHtml(name) + "</a></td><td title=\"" + escapeHtml(path) + "\"><a class=\"search-result-link path-link\" href=\"#\" title=\"Show file location in Explorer\" onclick=\"openSearchTarget(" + originalIndex + ",true);return false;\">" + escapeHtml(path) + "</a></td><td title=\"" + escapeHtml(searchRow.Length) + " bytes\">" + formatBytes(searchRow.Length) + "</td></tr>";
+        visibleCount++;
+    }
+    target.innerHTML = resultRows || '<tr><td class="empty-state" colspan="4">No matching files. Try broadening your keywords or optional filters.</td></tr>';
+    var selectedCount = 0;
+    for(var key in searchSelectedPaths)
+        if(Object.prototype.hasOwnProperty.call(searchSelectedPaths,key) && searchSelectedPaths[key]) selectedCount++;
+    setText("searchResultSummary", selectedCount + " selected; " + visibleCount + " shown; " + latestSearchRows.length + " total");
+}
+
+function getVisibleSearchIndexes()
+{
+    var filterField = document.getElementById("searchResultFilter");
+    var sortField = document.getElementById("searchResultSort");
+    var filter = filterField ? (filterField.value || "").toLowerCase() : "";
+    var sort = sortField ? sortField.value : "name";
+    var indexes = [];
+    for(var i = 0; i < latestSearchRows.length; i++)
+    {
+        var row = latestSearchRows[i];
+        var path = row.FullName || "";
+        var name = path.split(/[\\/]/).pop();
+        if(!filter || path.toLowerCase().indexOf(filter) >= 0 || name.toLowerCase().indexOf(filter) >= 0)
+            indexes.push(i);
+    }
+    indexes.sort(function(left, right){
+        var a = latestSearchRows[left];
+        var b = latestSearchRows[right];
+        var first = sort === "size" ? Number(a.Length) || 0 : sort === "path" ? (a.FullName || "").toLowerCase() : ((a.FullName || "").split(/[\\/]/).pop() || "").toLowerCase();
+        var second = sort === "size" ? Number(b.Length) || 0 : sort === "path" ? (b.FullName || "").toLowerCase() : ((b.FullName || "").split(/[\\/]/).pop() || "").toLowerCase();
+        return first < second ? -1 : first > second ? 1 : 0;
+    });
+    return indexes;
+}
+
+function toggleSearchSelection(index, selected)
+{
+    var row = latestSearchRows[index];
+    if(!row || !row.FullName) return;
+    if(selected) searchSelectedPaths[row.FullName] = true;
+    else delete searchSelectedPaths[row.FullName];
+    renderSearchResults();
+}
+
+function selectVisibleSearchResults(selected)
+{
+    var indexes = getVisibleSearchIndexes();
+    for(var i = 0; i < indexes.length; i++)
+    {
+        var path = latestSearchRows[indexes[i]].FullName;
+        if(selected) searchSelectedPaths[path] = true;
+        else delete searchSelectedPaths[path];
+    }
+    renderSearchResults();
+}
+
+function csvField(value)
+{
+    var text = String(value === null || value === undefined ? "" : value);
+    if(/^[\t\r\n ]*[=+\-@]/.test(text))
+        text = "'" + text;
+    return "\"" + text.replace(/"/g, "\"\"") + "\"";
+}
+
+function exportSearchResults()
+{
+    var selectedIndexes = [];
+    for(var i = 0; i < latestSearchRows.length; i++)
+        if(searchSelectedPaths[latestSearchRows[i].FullName]) selectedIndexes.push(i);
+    var indexes = selectedIndexes.length ? selectedIndexes : getVisibleSearchIndexes();
+    if(!indexes.length)
+    {
+        updateStatus("No search results to export");
+        return;
+    }
+
+    try
+    {
+        var directory = ensureApplicationLogDirectory();
+        var now = new Date();
+        var fileName = "SearchResults_" + now.getFullYear() + padNumber(now.getMonth()+1) + padNumber(now.getDate()) + "_" +
+            padNumber(now.getHours()) + padNumber(now.getMinutes()) + padNumber(now.getSeconds()) + ".csv";
+        var path = new ActiveXObject("Scripting.FileSystemObject").BuildPath(directory, fileName);
+        var csv = "Name,Path,SizeBytes\r\n";
+        for(var j = 0; j < indexes.length; j++)
+        {
+            var row = latestSearchRows[indexes[j]];
+            csv += csvField((row.FullName || "").split(/[\\/]/).pop()) + "," +
+                csvField(row.FullName || "") + "," + csvField(row.Length) + "\r\n";
+        }
+        writeUtf8File(path, csv);
+        new ActiveXObject("WScript.Shell").Run('"' + path + '"', 1, false);
+        updateStatus("Exported " + indexes.length + " search result(s)");
+        writeLog("Search results CSV saved: " + path);
+    }
+    catch(e)
+    {
+        writeLog("ERROR exporting search results: " + e.message);
+        updateStatus("Search results export failed");
+    }
+}
+
+function renderDuplicateResults()
+{
+    var target = document.getElementById("duplicateResults");
+    if(!target) return;
+
+    var filterField = document.getElementById("duplicateResultFilter");
+    var sortField = document.getElementById("duplicateResultSort");
+    var filter = filterField ? (filterField.value || "").toLowerCase() : "";
+    var sort = sortField ? sortField.value : "path";
+    var groupIndexes = [];
+    for(var i = 0; i < latestDuplicateGroups.length; i++)
+        groupIndexes.push(i);
+
+    groupIndexes.sort(function(leftIndex, rightIndex){
+        var left = latestDuplicateGroups[leftIndex];
+        var right = latestDuplicateGroups[rightIndex];
+        var leftFile = left.files && left.files.length ? left.files[0] : {};
+        var rightFile = right.files && right.files.length ? right.files[0] : {};
+        var a = sort === "size" ? Number(leftFile.Length) || 0 : (leftFile.Path || "").toLowerCase();
+        var b = sort === "size" ? Number(rightFile.Length) || 0 : (rightFile.Path || "").toLowerCase();
+        return a < b ? -1 : a > b ? 1 : 0;
+    });
+
+    var rows = "";
+    var visibleGroups = 0;
+    var totalCandidates = 0;
+    var selectedCount = 0;
+    var visibleCandidates = 0;
+    var visibleSelectedCount = 0;
+    for(var g = 0; g < latestDuplicateGroups.length; g++)
+    {
+        var group = latestDuplicateGroups[g];
+        var files = group.files || [];
+        for(var c = 0; c < files.length; c++)
+        {
+            if(files[c].Path !== group.keepPath)
+            {
+                totalCandidates++;
+                if(duplicateSelectedPaths[files[c].Path]) selectedCount++;
+            }
+        }
+    }
+
+    for(var n = 0; n < groupIndexes.length; n++)
+    {
+        var groupIndex = groupIndexes[n];
+        var currentGroup = latestDuplicateGroups[groupIndex];
+        var members = currentGroup.files || [];
+        if(!duplicateGroupMatchesFilter(currentGroup, filter)) continue;
+
+        visibleGroups++;
+        var keepExplanation = currentGroup.keepPath === currentGroup.defaultKeepPath ?
+            (currentGroup.keepReason || "Default keep: fewest subfolders from the scan root, then shortest relative path.") :
+            "Keep copy chosen by you.";
+        rows += "<tr class=\"group-heading\"><td colspan=\"5\">Duplicate set " + (visibleGroups) + " &mdash; " + members.length + " identical files. " + escapeHtml(keepExplanation) + "</td></tr>";
+        for(var f = 0; f < members.length; f++)
+        {
+            var member = members[f];
+            var isKeeper = member.Path === currentGroup.keepPath;
+            var path = member.Path || "";
+            var name = path.split(/[\\/]/).pop();
+            var keepReason = isKeeper ? "<span class=\"keep-label\">Current keep copy</span>" : "";
+            var checked = duplicateSelectedPaths[path] ? " checked" : "";
+            var memberStorageNote = "";
+            if(Number(member.HardLinkCount) > 1)
+                memberStorageNote = " <span class=\"keep-label\">Hard linked (" + Number(member.HardLinkCount) + " links); may not free space</span>";
+            else if(member.HardLinkCount === null || member.HardLinkCount === undefined)
+                memberStorageNote = " <span class=\"keep-label\">Link count unavailable</span>";
+            if(!isKeeper)
+            {
+                visibleCandidates++;
+                if(duplicateSelectedPaths[path]) visibleSelectedCount++;
+            }
+            rows += "<tr><td><label><input class=\"keep-choice\" type=\"radio\" name=\"keepGroup" + groupIndex + "\"" + (isKeeper ? " checked" : "") + " onclick=\"chooseKeepCopy(" + groupIndex + "," + f + ")\">Keep</label> " + keepReason + "</td><td><input class=\"remove-choice\" type=\"checkbox\"" + (isKeeper ? " disabled" : "") + checked + " onchange=\"toggleDuplicateSelection(" + groupIndex + "," + f + ",this.checked)\">" + (isKeeper ? "—" : "Remove") + memberStorageNote + "</td><td title=\"" + escapeHtml(path) + "\"><strong>" + escapeHtml(name) + "</strong><br><span class=\"search-result-link path-link\">" + escapeHtml(path) + "</span></td><td title=\"" + escapeHtml(member.Length) + " bytes\">" + formatBytes(member.Length) + "</td><td title=\"" + escapeHtml(currentGroup.hash || member.Hash) + "\">" + escapeHtml(currentGroup.hash || member.Hash || "") + "</td></tr>";
+        }
+    }
+    target.innerHTML = rows || '<tr><td class="empty-state" colspan="5">No duplicate groups match this filter.</td></tr>';
+    setText("duplicateResultSummary", visibleGroups + " groups shown; " + latestDuplicateGroups.length + " total");
+    setText("duplicateSelectionSummary", selectedCount + " selected; " + totalCandidates + " removable copies");
+    var removeAllCheckbox = document.getElementById("duplicateRemoveAll");
+    if(removeAllCheckbox)
+    {
+        removeAllCheckbox.checked = visibleCandidates > 0 && visibleSelectedCount === visibleCandidates;
+        removeAllCheckbox.indeterminate = visibleSelectedCount > 0 && visibleSelectedCount < visibleCandidates;
+        removeAllCheckbox.disabled = visibleCandidates === 0;
+    }
+    var deleteButton = document.getElementById("deleteDuplicatesButton");
+    if(deleteButton) deleteButton.disabled = selectedCount === 0 || !!progressPollTimer;
+    updateDuplicateCleanupPreview();
+    return totalCandidates;
+}
+
+function handleDuplicateFilterChanged()
+{
+    var keepAllCheckbox = document.getElementById("duplicateKeepAll");
+    if(keepAllCheckbox) keepAllCheckbox.checked = false;
+    renderDuplicateResults();
+}
+
+function duplicateGroupMatchesFilter(group, filter)
+{
+    if(!filter) return true;
+    var members = group && group.files ? group.files : [];
+    for(var i = 0; i < members.length; i++)
+        if((members[i].Path || "").toLowerCase().indexOf(filter) >= 0) return true;
+    return false;
+}
+
+function getDuplicateResultFilter()
+{
+    var filterField = document.getElementById("duplicateResultFilter");
+    return filterField ? (filterField.value || "").toLowerCase() : "";
+}
+
+function applyVisibleDuplicateKeepDefaults(selected)
+{
+    if(!selected) return;
+    var filter = getDuplicateResultFilter();
+    var updated = 0;
+    for(var g = 0; g < latestDuplicateGroups.length; g++)
+    {
+        var group = latestDuplicateGroups[g];
+        if(!duplicateGroupMatchesFilter(group, filter)) continue;
+        var files = group.files || [];
+        var keepPath = group.defaultKeepPath || "";
+        var hasRecommendedCopy = false;
+        for(var f = 0; f < files.length; f++)
+            if(files[f].Path === keepPath) hasRecommendedCopy = true;
+        if(!hasRecommendedCopy) continue;
+        group.keepPath = keepPath;
+        delete duplicateSelectedPaths[keepPath];
+        updated++;
+    }
+    renderDuplicateResults();
+    updateStatus("Applied recommended keep copy to " + updated + " visible duplicate group(s)");
+}
+
+function selectVisibleDuplicateRemovals(selected)
+{
+    var filter = getDuplicateResultFilter();
+    var updated = 0;
+    for(var g = 0; g < latestDuplicateGroups.length; g++)
+    {
+        var group = latestDuplicateGroups[g];
+        if(!duplicateGroupMatchesFilter(group, filter)) continue;
+        var files = group.files || [];
+        for(var f = 0; f < files.length; f++)
+        {
+            var path = files[f].Path;
+            if(path === group.keepPath) continue;
+            if(selected) duplicateSelectedPaths[path] = true;
+            else delete duplicateSelectedPaths[path];
+            updated++;
+        }
+    }
+    renderDuplicateResults();
+    updateStatus((selected ? "Selected " : "Cleared ") + updated + " removable copy/copies in visible duplicate groups");
+}
+
+function chooseKeepCopy(groupIndex, fileIndex)
+{
+    var group = latestDuplicateGroups[groupIndex];
+    if(!group || !group.files || !group.files[fileIndex]) return;
+    group.keepPath = group.files[fileIndex].Path;
+    delete duplicateSelectedPaths[group.keepPath];
+    var keepAllCheckbox = document.getElementById("duplicateKeepAll");
+    if(keepAllCheckbox) keepAllCheckbox.checked = false;
+    renderDuplicateResults();
+}
+
+function toggleDuplicateSelection(groupIndex, fileIndex, selected)
+{
+    var group = latestDuplicateGroups[groupIndex];
+    var file = group && group.files ? group.files[fileIndex] : null;
+    if(!file || file.Path === group.keepPath) return;
+    if(selected) duplicateSelectedPaths[file.Path] = true;
+    else delete duplicateSelectedPaths[file.Path];
+    renderDuplicateResults();
+}
+
+function getSelectedDuplicateFiles()
+{
+    var selected = [];
+    for(var g = 0; g < latestDuplicateGroups.length; g++)
+    {
+        var group = latestDuplicateGroups[g];
+        var files = group.files || [];
+        for(var f = 0; f < files.length; f++)
+        {
+            var file = files[f];
+            if(duplicateSelectedPaths[file.Path] && file.Path !== group.keepPath)
+                selected.push({
+                    Path:file.Path,
+                    Hash:group.hash || file.Hash,
+                    KeepPath:group.keepPath,
+                    Length:Number(file.Length) || 0,
+                    HardLinkCount:file.HardLinkCount
+                });
+        }
+    }
+    return selected;
+}
+
+function getDuplicateCandidateReclaimEstimate()
+{
+    var total = 0;
+    for(var g = 0; g < latestDuplicateGroups.length; g++)
+    {
+        var group = latestDuplicateGroups[g];
+        var files = group.files || [];
+        for(var f = 0; f < files.length; f++)
+            if(files[f].Path !== group.keepPath && files[f].HardLinkCount === 1)
+                total += Number(files[f].Length) || 0;
+    }
+    return total;
+}
+
+function updateDuplicateCleanupPreview()
+{
+    var selected = getSelectedDuplicateFiles();
+    var totalBytes = 0;
+    var confidentlyReclaimableBytes = 0;
+    var linkedCount = 0;
+    var keepPaths = [];
+    for(var i = 0; i < selected.length; i++)
+    {
+        totalBytes += selected[i].Length;
+        if(selected[i].HardLinkCount === 1) confidentlyReclaimableBytes += selected[i].Length;
+        else if(Number(selected[i].HardLinkCount) > 1) linkedCount++;
+        if(keepPaths.indexOf(selected[i].KeepPath) < 0) keepPaths.push(selected[i].KeepPath);
+    }
+    var summary = selected.length + " selected (" + formatBytes(totalBytes) + " data size); estimated space recoverable by permanent deletion " + formatBytes(confidentlyReclaimableBytes) + ".";
+    if(linkedCount) summary += " " + linkedCount + " hard-linked file(s) may not free space.";
+    var methodField = document.getElementById("cleanupMethod");
+    var method = methodField ? methodField.value : "recycle";
+    if(method === "recycle") summary += " Recycle Bin contents continue using space until emptied.";
+    else if(method === "quarantine") summary += " Quarantine may use space on the same drive.";
+    else summary += " Permanent deletion is irreversible.";
+    setText("cleanupPreviewSummary", summary);
+}
+
+function largeFilePhysicalReclaimEstimate(selected)
+{
+    var bytes = 0;
+    var linked = 0;
+    var unknown = 0;
+    for(var i = 0; i < selected.length; i++)
+    {
+        var linkCount = selected[i].HardLinkCount;
+        if(linkCount === 1) bytes += Number(selected[i].Length) || 0;
+        else if(Number(linkCount) > 1) linked++;
+        else unknown++;
+    }
+    return { bytes:bytes, linked:linked, unknown:unknown };
+}
+
+function selectVisibleLargeFiles(selected)
+{
+    var filterField = document.getElementById("largeFilesFilter");
+    var filter = filterField ? (filterField.value || "").toLowerCase() : "";
+    var changed = 0;
+    for(var i = 0; i < latestLargeFiles.length; i++)
+    {
+        var file = latestLargeFiles[i];
+        if(!file.EligibleForCleanup || (filter && (file.FullName || "").toLowerCase().indexOf(filter) < 0)) continue;
+        if(selected) largeFileSelectedPaths[file.FullName] = true;
+        else delete largeFileSelectedPaths[file.FullName];
+        changed++;
+    }
+    renderLargeFileResults();
+    updateStatus((selected ? "Selected " : "Cleared ") + changed + " visible large file(s)");
+}
+
+function renderLargeFileResults()
+{
+    var target = document.getElementById("largeFilesResults");
+    if(!target) return;
+    var filterField = document.getElementById("largeFilesFilter");
+    var sortField = document.getElementById("largeFilesSort");
+    var filter = filterField ? (filterField.value || "").toLowerCase() : "";
+    var sort = sortField ? sortField.value : "size-desc";
+    var visible = [];
+    var selectedRows = [];
+    for(var i = 0; i < latestLargeFiles.length; i++)
+    {
+        var item = latestLargeFiles[i];
+        if(largeFileSelectedPaths[item.FullName]) selectedRows.push(item);
+        var path = item.FullName || "";
+        if(!filter || path.toLowerCase().indexOf(filter) >= 0) visible.push(i);
+    }
+    visible.sort(function(a,b){
+        var first = latestLargeFiles[a];
+        var second = latestLargeFiles[b];
+        if(sort === "path")
+        {
+            var left = (first.FullName || "").toLowerCase();
+            var right = (second.FullName || "").toLowerCase();
+            return left < right ? -1 : left > right ? 1 : 0;
+        }
+        var sizeDiff = (Number(first.Length) || 0) - (Number(second.Length) || 0);
+        return sort === "size-asc" ? sizeDiff : -sizeDiff;
+    });
+    var rows = "";
+    for(var r = 0; r < visible.length; r++)
+    {
+        var originalIndex = visible[r];
+        var file = latestLargeFiles[originalIndex];
+        var path = file.FullName || "";
+        var name = path.split(/[\\/]/).pop();
+        var status = file.CloudPlaceholder ? "Cloud placeholder — not removable" :
+            file.ReparsePoint ? "Linked/reparse point — not removable" :
+            Number(file.HardLinkCount) > 1 ? "Hard linked; may not free space" :
+            file.HardLinkCount === null || file.HardLinkCount === undefined ? "Link count unavailable" : "Local file";
+        var checkbox = "<input class=\"remove-choice\" type=\"checkbox\" aria-label=\"Select " + escapeHtml(name) + "\"";
+        if(!file.EligibleForCleanup) checkbox += " disabled";
+        if(largeFileSelectedPaths[path]) checkbox += " checked";
+        checkbox += " onchange=\"toggleLargeFileSelection(" + originalIndex + ",this.checked)\">";
+        rows += "<tr><td>" + checkbox + "</td><td title=\"" + escapeHtml(path) + "\"><strong>" + escapeHtml(name) + "</strong><br><span class=\"search-result-link path-link\">" + escapeHtml(path) + "</span></td><td>" + formatBytes(file.Length) + "</td><td>" + escapeHtml(file.HardLinkCount === null || file.HardLinkCount === undefined ? "Unknown" : file.HardLinkCount) + "</td><td>" + escapeHtml(status) + "</td><td>" + escapeHtml(file.LastWriteTime || "") + "</td></tr>";
+    }
+    target.innerHTML = rows || '<tr><td class="empty-state" colspan="6">No large files match the current filter.</td></tr>';
+    var estimate = largeFilePhysicalReclaimEstimate(selectedRows);
+    var estimateMessage = selectedRows.length + " selected; estimated space recoverable by permanent deletion " + formatBytes(estimate.bytes) + ".";
+    if(estimate.linked) estimateMessage += " " + estimate.linked + " hard-linked file(s) may not reclaim space.";
+    if(estimate.unknown) estimateMessage += " " + estimate.unknown + " file(s) have unknown link counts and are excluded from the estimate.";
+    setText("largeFileSelectionSummary", estimateMessage);
+    setText("largeFilesSummary", visible.length + " shown; " + latestLargeFiles.length + " total");
+    setText("largeFilesCount", latestLargeFiles.length + " files");
+    var removeButton = document.getElementById("removeLargeFilesButton");
+    if(removeButton) removeButton.disabled = selectedRows.length === 0 || !!progressPollTimer;
+}
+
+function toggleLargeFileSelection(fileIndex, selected)
+{
+    var file = latestLargeFiles[fileIndex];
+    if(!file || !file.EligibleForCleanup) return;
+    if(selected) largeFileSelectedPaths[file.FullName] = true;
+    else delete largeFileSelectedPaths[file.FullName];
+    renderLargeFileResults();
+}
+
+function runLargeFileScan()
+{
+    if(progressPollTimer)
+    {
+        updateStatus("Wait for the current operation to finish");
+        return;
+    }
+    var root = getFolderValue("largeFilesRoot");
+    if(!root || !root.trim() || !folderExists(root))
+    {
+        updateStatus("Choose an existing folder for the large-file scan");
+        return;
+    }
+    var minField = document.getElementById("largeFilesMinSize");
+    var maxField = document.getElementById("largeFilesMaxSize");
+    var minMb = minField && minField.value !== "" ? Number(minField.value) : 100;
+    var maxMb = maxField && maxField.value !== "" ? Number(maxField.value) : -1;
+    if(!isFinite(minMb) || minMb < 0 || !isFinite(maxMb) || maxMb < -1 || (maxMb >= 0 && minMb > maxMb))
+    {
+        updateStatus("Enter a valid large-file size range");
+        return;
+    }
+    var minBytes = Math.ceil(minMb * 1048576);
+    var maxBytes = maxMb < 0 ? -1 : Math.floor(maxMb * 1048576);
+    if(minBytes > 9007199254740991 || maxBytes > 9007199254740991)
+    {
+        updateStatus("Large-file size filters must be 8 PiB or less");
+        return;
+    }
+    latestLargeFiles = [];
+    largeFileSelectedPaths = {};
+    setEmptyRow("largeFilesResults", 6, "Scanning for large files...");
+    setText("largeFilesSummary", "0 files");
+    saveSettings();
+    runPowerShellCommand("LargeFiles", {
+        rootFolder:root,
+        excludedFolders:getExclusionValue("largeFilesExcluded"),
+        searchMinBytes:minBytes,
+        searchMaxBytes:maxBytes
+    });
+}
+
+function removeSelectedLargeFiles()
+{
+    var selected = [];
+    for(var i = 0; i < latestLargeFiles.length; i++)
+    {
+        var file = latestLargeFiles[i];
+        if(largeFileSelectedPaths[file.FullName] && file.EligibleForCleanup)
+            selected.push({ Path:file.FullName, Length:Number(file.Length), LastWriteTime:file.LastWriteTime, HardLinkCount:file.HardLinkCount });
+    }
+    if(!selected.length)
+    {
+        updateStatus("Select removable large files first");
+        return;
+    }
+    var methodField = document.getElementById("largeFileCleanupMethod");
+    var recoveryMode = methodField ? methodField.value : "recycle";
+    var estimate = largeFilePhysicalReclaimEstimate(selected);
+    var destination = recoveryMode === "permanent" ? "permanently delete" : recoveryMode === "quarantine" ? "move into quarantine" : "move to the Recycle Bin";
+    var totalBytes = 0;
+    for(var b = 0; b < selected.length; b++) totalBytes += Number(selected[b].Length) || 0;
+    var preview = "Process " + selected.length + " file(s) with total data size " + formatBytes(totalBytes) + ".\r\nEstimated space recoverable by permanent deletion: " + formatBytes(estimate.bytes) + ".\r\nAction: " + destination + ".";
+    if(estimate.linked) preview += "\r\n" + estimate.linked + " hard-linked file(s) may not release their storage.";
+    if(!confirm(preview + "\r\n\r\nContinue?")) return;
+    if(recoveryMode === "permanent")
+    {
+        var acknowledgement = prompt("Permanent deletion cannot be undone. Type DELETE to confirm.");
+        if(acknowledgement !== "DELETE")
+        {
+            updateStatus("Permanent deletion cancelled");
+            return;
+        }
+    }
+    runPowerShellCommand("DeleteSelected", {
+        rootFolder:getFolderValue("largeFilesRoot"),
+        selectedFilesJson:JSON.stringify(selected),
+        recoveryMode:recoveryMode,
+        cleanupKind:"largefiles"
+    });
+}
+
+function setText(elementId, value)
+{
+    var element = document.getElementById(elementId);
+    if(element)
+        element.innerText = value;
+}
+
+function openLogFile(index)
+{
+    if(!latestLogRows || !latestLogRows[index]) return;
+    try
+    {
+        new ActiveXObject("WScript.Shell").Run('notepad.exe "' + latestLogRows[index].FullName + '"', 1, false);
+    }
+    catch(e)
+    {
+        writeLog("ERROR opening log: " + e.message);
+    }
+}
+
+function viewLogFile(index)
+{
+    if(!latestLogRows || !latestLogRows[index]) return;
+
+    try
+    {
+        var content = readUtf8File(latestLogRows[index].FullName);
+        setText("selectedLogName", latestLogRows[index].FullName);
+        setText("selectedLogContent", content || "This log file is empty.");
+    }
+    catch(e)
+    {
+        setText("selectedLogName", "Unable to read log");
+        setText("selectedLogContent", e.message);
+        writeLog("ERROR reading log: " + e.message);
+    }
+}
+
+function openReportFile()
+{
+    if(!latestReportPath) return;
+    try
+    {
+        new ActiveXObject("WScript.Shell").Run('"' + latestReportPath + '"', 1, false);
+    }
+    catch(e)
+    {
+        writeLog("ERROR opening report: " + e.message);
+    }
+}
+
+function openSearchTarget(index, showLocation)
+{
+    if(!latestSearchRows || !latestSearchRows[index] || !latestSearchRows[index].FullName)
+        return;
+
+    var path = latestSearchRows[index].FullName;
+    var command = showLocation ? 'explorer.exe /select,"' + path + '"' : '"' + path + '"';
+
+    try
+    {
+        var shell = new ActiveXObject("WScript.Shell");
+        var processId = shell.Run(command, showLocation ? 3 : 1, false);
+        if(processId)
+            shell.AppActivate(processId);
+    }
+    catch(e)
+    {
+        writeLog("ERROR opening search result: " + e.message);
+        updateStatus("Unable to open search result");
+    }
+}
+
+function updateStatus(text)
+{
+    var status =
+        document.getElementById(
+            "statusText"
+        );
+
+    if(status)
+    {
+        status.innerText = text;
+    }
+}
+
+function browseFolderFor(targetId, title)
+{
+    try
+    {
+        var shell =
+            new ActiveXObject(
+                "Shell.Application"
+            );
+
+        var folder =
+            shell.BrowseForFolder(
+                0,
+                title || "Select Folder",
+                65
+            );
+
+        if(folder)
+        {
+            var selectedPath = folder.Self.Path;
+            var fileSystem = new ActiveXObject("Scripting.FileSystemObject");
+
+            if(!selectedPath || !fileSystem.FolderExists(selectedPath))
+            {
+                writeLog("ERROR: Select a filesystem folder, not a Windows Library or virtual location.");
+                updateStatus("Choose a valid folder");
+                return;
+            }
+
+            document.getElementById(targetId).value = selectedPath;
+
+            writeLog(
+                "Folder selected: " +
+                selectedPath
+            );
+        }
+    }
+    catch(e)
+    {
+        writeLog(
+            "ERROR: " + e.message
+        );
+    }
+}
+
+function getFolderValue(targetId)
+{
+    var field =
+        document.getElementById(
+            targetId
+        );
+
+    if(!field)
+        return "";
+
+    return field.value || "";
+}
+
+function folderExists(path)
+{
+    try
+    {
+        return new ActiveXObject("Scripting.FileSystemObject").FolderExists(path);
+    }
+    catch(e)
+    {
+        return false;
+    }
+}
+
+function getExclusionValue(sourceId)
+{
+    var field = document.getElementById(sourceId || "duplicatesExcluded");
+    return field ? (field.value || "").replace(/[\r\n]+/g, ";") : "";
+}
+
+function getKeywordValue(targetId)
+{
+    var field = document.getElementById(targetId);
+    if(!field) return "";
+
+    var terms = (field.value || "").split(/[,;\r\n]+/);
+    var normalized = [];
+    for(var i = 0; i < terms.length; i++)
+    {
+        var term = terms[i].replace(/^\s+|\s+$/g, "");
+        if(term) normalized.push(term);
+    }
+    return normalized.join(";");
+}
+
+function getSearchFilterOptions()
+{
+    var minField = document.getElementById("searchMinSize");
+    var maxField = document.getElementById("searchMaxSize");
+    var minMb = minField && minField.value !== "" ? Number(minField.value) : -1;
+    var maxMb = maxField && maxField.value !== "" ? Number(maxField.value) : -1;
+    if(!isFinite(minMb) || !isFinite(maxMb) || minMb < 0 && minMb !== -1 || maxMb < 0 && maxMb !== -1 || (minMb >= 0 && maxMb >= 0 && minMb > maxMb))
+        throw new Error("Enter a valid minimum and maximum file size in MB.");
+
+    var extensionsField = document.getElementById("searchExtensions");
+    var afterField = document.getElementById("searchModifiedAfter");
+    var beforeField = document.getElementById("searchModifiedBefore");
+    var after = afterField ? afterField.value : "";
+    var before = beforeField ? beforeField.value : "";
+    if(after && before && after > before)
+        throw new Error("The Modified after date cannot be later than Modified before.");
+
+    var minBytes = minMb < 0 ? -1 : Math.ceil(minMb * 1048576);
+    var maxBytes = maxMb < 0 ? -1 : Math.floor(maxMb * 1048576);
+    if(minBytes > 9007199254740991 || maxBytes > 9007199254740991)
+        throw new Error("File-size filters must be 8 PiB or less.");
+
+    return {
+        searchMinBytes: minBytes,
+        searchMaxBytes: maxBytes,
+        searchExtensions: extensionsField ? getKeywordValue("searchExtensions").replace(/(^|;)\s*\./g, "$1") : "",
+        searchModifiedAfter: after,
+        searchModifiedBefore: before
+    };
+}
+
+function runPowerShellCommand(mode, options)
+{
+    if(progressPollTimer)
+    {
+        writeLog("An operation is already running. Wait for it to finish before starting another.");
+        updateStatus("Operation already running");
+        return;
+    }
+
+    var rootFolder =
+        options.rootFolder ||
+        "";
+
+    if(mode === "ListQuarantine" || mode === "RestoreSelected")
+    {
+        try { rootFolder = ensureApplicationQuarantineDirectory(); }
+        catch(e)
+        {
+            writeLog("ERROR accessing application quarantine: " + e.message);
+            updateStatus("Quarantine unavailable");
+            return;
+        }
+    }
+    if(mode !== "EmptyRecycleBin" && (!rootFolder || !rootFolder.trim()))
+    {
+        logFailedOperation(mode, "", "A folder path is required.");
+        writeLog("ERROR: Please provide a valid folder path.");
+        updateStatus("Folder required");
+        return;
+    }
+
+    if(mode !== "EmptyRecycleBin" && !folderExists(rootFolder))
+    {
+        var folderFailure = "Folder not found: " + rootFolder;
+        logFailedOperation(mode, rootFolder, folderFailure);
+        renderOperationFailure(mode === "Search" ? "search" : mode === "Reports" ? "reports" : mode === "Logs" ? "logs" : "duplicates", folderFailure);
+        writeLog("ERROR: " + folderFailure);
+        updateStatus("Folder not found");
+        return;
+    }
+
+    var exclusionRules = typeof options.excludedFolders === "string" ?
+        options.excludedFolders : getExclusionValue("duplicatesExcluded");
+    var operationName = options.deleteDuplicates ? "Delete" : mode;
+    var logDetails = "";
+    if(options.searchPattern)
+        logDetails += "Search term: " + options.searchPattern + "\r\n";
+    if(exclusionRules)
+        logDetails += "Exclusions: " + exclusionRules.replace(/[;]+/g, ", ") + "\r\n";
+
+    if(mode === "Logs")
+        currentOperationLogPath = "";
+    else if(!startOperationLog(operationName, rootFolder, logDetails))
+    {
+        writeLog("ERROR: Could not create an operation log in the logs folder.");
+        return;
+    }
+
+    clearProgressFile();
+    clearResultFile();
+    clearControlFile();
+    clearSelectedFilesFile();
+    if(options.selectedFilesJson)
+    {
+        try
+        {
+            writeUtf8File(selectedFilesFilePath, options.selectedFilesJson);
+        }
+        catch(e)
+        {
+            writeLog("ERROR preparing selected files for cleanup: " + e.message);
+            updateStatus("Cleanup could not start");
+            return;
+        }
+    }
+    var progressTarget = mode === "Search" ? "search" :
+        mode === "Reports" ? "reports" :
+        mode === "Logs" ? "logs" :
+        mode === "LargeFiles" ? "largefiles" :
+        mode === "DeleteSelected" && options.cleanupKind === "largefiles" ? "cleanupLarge" :
+        (mode === "DeleteSelected" || mode === "EmptyRecycleBin") ? "cleanup" : "duplicates";
+    setProgressTarget(progressTarget);
+    updateStatus(mode + " running");
+    writeLog("Running: " + mode + " for " + rootFolder);
+
+    try
+    {
+        var command = createEmbeddedPowerShellCommand({
+            rootFolder: rootFolder,
+            mode: mode || "Scan",
+            searchPattern: options.searchPattern || "",
+            excludedFolders: exclusionRules,
+            selectedFilesJson: options.selectedFilesJson || "",
+            recoveryMode: options.recoveryMode || "",
+            cleanupKind: options.cleanupKind || "duplicate",
+            recycleBinRoot: options.recycleBinRoot || "",
+            searchMinBytes: options.searchMinBytes || 0,
+            searchMaxBytes: options.searchMaxBytes || 0,
+            searchExtensions: options.searchExtensions || "",
+            searchModifiedAfter: options.searchModifiedAfter || "",
+            searchModifiedBefore: options.searchModifiedBefore || "",
+            reportDirectory: options.reportDirectory || ""
+        });
+        var shell = new ActiveXObject("WScript.Shell");
+        shell.Run(command, 0, false);
+        startProgressPolling();
+    }
+    catch(e)
+    {
+        stopProgressPolling();
+        operationPaused = false;
+        setOperationControlButtons(false);
+        var launchError = describeScriptError(e);
+        writeLog("ERROR launching PowerShell: " + launchError);
+        updateStatus("Operation could not start: " + launchError);
+    }
+}
+
+var progressPollTimer = null;
+var progressFilePath = (new ActiveXObject("WScript.Shell").ExpandEnvironmentStrings("%TEMP%")) + "\\duplicate_cleaner_progress.json";
+var resultFilePath = (new ActiveXObject("WScript.Shell").ExpandEnvironmentStrings("%TEMP%")) + "\\duplicate_cleaner_results.json";
+var controlFilePath = (new ActiveXObject("WScript.Shell").ExpandEnvironmentStrings("%TEMP%")) + "\\duplicate_cleaner_control.txt";
+var selectedFilesFilePath = (new ActiveXObject("WScript.Shell").ExpandEnvironmentStrings("%TEMP%")) + "\\duplicate_cleaner_selected_files.json";
+var enginePayloadFilePath = (new ActiveXObject("WScript.Shell").ExpandEnvironmentStrings("%TEMP%")) + "\\duplicate_cleaner_engine.b64";
+var settingsFilePath = (new ActiveXObject("WScript.Shell").ExpandEnvironmentStrings("%APPDATA%")) + "\\DuplicateCleaner\\settings.json";
+var activeProgressTarget = "dashboard";
+var latestProgressMessage = "";
+var latestScanData = null;
+var latestSearchRows = [];
+var searchSelectedPaths = {};
+var latestDuplicateGroups = [];
+var duplicateSelectedPaths = {};
+var latestLargeFiles = [];
+var largeFileSelectedPaths = {};
+var scanProfiles = [];
+var latestLogRows = [];
+var latestReportPath = "";
+var latestQuarantineRows = [];
+var quarantineSelectedPaths = {};
+var currentOperationLogPath = "";
+var operationStartedAt = 0;
+var operationPaused = false;
+var operationPausedAt = 0;
+var operationPausedTotal = 0;
+var recentSearchFolders = [];
+var recentDuplicateFolders = [];
+var embeddedEngineBase64 =
+    "H4sIAAAAAAAEAO19a3fbRrLgd/0KHI7uETkWObInnpm1js+aluhYM3qNKDu7V/H6QCQo4RoEGAC0rCT671vV7zdAinaSvYsPtgj0" +
+    "s7reXV39p+jles/Wn6LD5SJLJ3GdRG/SLIkOsiTOkxI+rN/kmzSfVtFUNDyDhqvo+j4avx0+e/636DaubqHYv5JkUUX1bRJNisV9" +
+    "NMmKKqnqqC7Iu7Io6mhWZFMymIMygZaq6PJ/XUZxPo0Oxu+jrLip4NNb+I3tx5NJUkG3SZ4m0134OvmUTGnfu1GZLOKySqJFkeZ1" +
+    "9YjZbUE78by7FcFzVdVlmt982L6Asb4hQ41eRp3Orv71pJgm+H48iXPz2ziJy8nteVzXSZm7Ko++TLLlNJnS5itXkfOyuClh6mT9" +
+    "HN8Pirwui8z3eZxkyaSGHhBSvkIXyaT4nJT3fC5lMrmfZAkvlhVyMidp/voe1+pl1H/q+h5/sb7r4Bh9qZO8SovcOV3WSjFNZ7DQ" +
+    "w1nthrpe7HUyK0rPzBZFWR+mMKO6KO/dRaplVnvBixSzXPwLkB4/C7R3gBBB9jrNEV20lu7SenL7Yfs4reqzPLs3Xh/CAtWJoNNq" +
+    "q7e1NVvmkxogFP1QpnXS5yjwbjFFgvuFNKBgqg6ZOr5JduV7oAhAoqScJHm9axc/gXYdFQ6KZV4ra6h8uU0I6eE38gnGi/+ls6jb" +
+    "z2HqvOkXL46q02WWnZU/3MIsxot4knQ1dO712FzwoV2+j7MlrgO2xgbRv0miPSjJSkQPUZIBrcPvHFqPHpQW6ND0NthwlVbYG287" +
+    "NeCJHBdpmY9aRaQxrFjdB+K+jei/OqnCuxJArrWzIoxEb72oj2yRVO1eAhtl3R5DnTLO9N5lrZ4xDXxOk7v+UZ3MI/Lv5f0iieSk" +
+    "+p6Wov6bAhAo+jU6W9Z9HLDWrgSd/AtweXJr9P+nKL3JkVAXrAPCv6Op6CatqiVQgGxNru0orwnUrxbVZFnVxby4/i+o9eGV3kWF" +
+    "2A/FKBlonxaUBvAjIwft85wSAn5mNKF9rlMoUMfzBRTofp/U/UMgxd7gshiTlex2ik5PqzBhFKTgtf5d0JGGt67JOxCSguPXCLg/" +
+    "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" +
+    "/i9khbPpzRcBAA==";
+
+function quotePowerShellString(value)
+{
+    return "'" + String(value === null || value === undefined ? "" : value).replace(/'/g, "''") + "'";
+}
+
+function describeScriptError(error)
+{
+    if(error)
+    {
+        if(error.message) return error.message;
+        if(error.description) return error.description;
+        var text = String(error);
+        if(text && text !== "[object Object]") return text;
+    }
+    return "Unknown scripting or COM error.";
+}
+
+function encodePowerShellCommand(command)
+{
+    var binary = "";
+    var chunkSize = 2048;
+
+    for(var start = 0; start < command.length; start += chunkSize)
+    {
+        var end = Math.min(start + chunkSize, command.length);
+        var chunk = "";
+        for(var i = start; i < end; i++)
+        {
+            var code = command.charCodeAt(i);
+            chunk += String.fromCharCode(code & 255, code >> 8);
+        }
+        binary += chunk;
+    }
+
+    return window.btoa(binary);
+}
+
+function createEmbeddedPowerShellCommand(options)
+{
+    writeUtf8File(enginePayloadFilePath, embeddedEngineBase64);
+    var wrapper =
+        "$ErrorActionPreference='Stop';" +
+        "$payload=[System.IO.File]::ReadAllText(" + quotePowerShellString(enginePayloadFilePath) + ");" +
+        "$compressedBytes=[Convert]::FromBase64String($payload);" +
+        "$inputStream=[System.IO.MemoryStream]::new($compressedBytes);" +
+        "$gzipStream=[System.IO.Compression.GZipStream]::new($inputStream,[System.IO.Compression.CompressionMode]::Decompress);" +
+        "$reader=[System.IO.StreamReader]::new($gzipStream,[System.Text.Encoding]::UTF8);" +
+        "$engineSource=$reader.ReadToEnd();$reader.Dispose();$inputStream.Dispose();" +
+        "$engineParameters=@{" +
+            "RootFolder=" + quotePowerShellString(options.rootFolder) + ";" +
+            "Mode=" + quotePowerShellString(options.mode) + ";" +
+            "SearchPattern=" + quotePowerShellString(options.searchPattern) + ";" +
+            "ExcludedFolders=" + quotePowerShellString(options.excludedFolders) + ";" +
+            "ProgressFile=" + quotePowerShellString(progressFilePath) + ";" +
+            "ResultFile=" + quotePowerShellString(resultFilePath) + ";" +
+            "ControlFile=" + quotePowerShellString(controlFilePath) + ";" +
+            "SelectedFilesFile=" + quotePowerShellString(selectedFilesFilePath) + ";" +
+            "RecoveryMode=" + quotePowerShellString(options.recoveryMode) + ";" +
+            "CleanupKind=" + quotePowerShellString(options.cleanupKind || "duplicate") + ";" +
+            "RecycleBinRoot=" + quotePowerShellString(options.recycleBinRoot || "") + ";" +
+            "SearchMinBytes=" + quotePowerShellString(options.searchMinBytes) + ";" +
+            "SearchMaxBytes=" + quotePowerShellString(options.searchMaxBytes) + ";" +
+            "SearchExtensions=" + quotePowerShellString(options.searchExtensions) + ";" +
+            "SearchModifiedAfter=" + quotePowerShellString(options.searchModifiedAfter) + ";" +
+            "SearchModifiedBefore=" + quotePowerShellString(options.searchModifiedBefore) + ";" +
+            "ReportDirectory=" + quotePowerShellString(options.reportDirectory) +
+        "};" +
+        "& ([System.Management.Automation.ScriptBlock]::Create($engineSource)) @engineParameters";
+
+    return "powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -EncodedCommand \"" + encodePowerShellCommand(wrapper) + "\"";
+}
+
+function clearProgressFile()
+{
+    try
+    {
+        var fso = new ActiveXObject("Scripting.FileSystemObject");
+        if(fso.FileExists(progressFilePath))
+        {
+            fso.DeleteFile(progressFilePath, true);
+        }
+    }
+    catch(e)
+    {
+        // ignore file cleanup errors
+    }
+}
+
+function clearResultFile()
+{
+    try
+    {
+        var fso = new ActiveXObject("Scripting.FileSystemObject");
+        if(fso.FileExists(resultFilePath))
+            fso.DeleteFile(resultFilePath, true);
+    }
+    catch(e)
+    {
+    }
+}
+
+function clearControlFile()
+{
+    try
+    {
+        var fso = new ActiveXObject("Scripting.FileSystemObject");
+        if(fso.FileExists(controlFilePath))
+            fso.DeleteFile(controlFilePath, true);
+        if(fso.FileExists(controlFilePath + ".pause"))
+            fso.DeleteFile(controlFilePath + ".pause", true);
+        if(fso.FileExists(controlFilePath + ".cancel"))
+            fso.DeleteFile(controlFilePath + ".cancel", true);
+        return true;
+    }
+    catch(e)
+    {
+        writeLog("ERROR clearing operation control file: " + e.message);
+        return false;
+    }
+}
+
+function clearPauseControlFile()
+{
+    try
+    {
+        var fso = new ActiveXObject("Scripting.FileSystemObject");
+        if(fso.FileExists(controlFilePath + ".pause"))
+            fso.DeleteFile(controlFilePath + ".pause", true);
+        return true;
+    }
+    catch(e)
+    {
+        writeLog("ERROR resuming operation: " + describeScriptError(e));
+        updateStatus("Unable to resume operation");
+        return false;
+    }
+}
+
+function clearSelectedFilesFile()
+{
+    try
+    {
+        var fso = new ActiveXObject("Scripting.FileSystemObject");
+        if(fso.FileExists(selectedFilesFilePath))
+            fso.DeleteFile(selectedFilesFilePath, true);
+    }
+    catch(e)
+    {
+        writeLog("ERROR clearing selected-file data: " + e.message);
+    }
+}
+
+function setControlCommand(command)
+{
+    try
+    {
+        var fso = new ActiveXObject("Scripting.FileSystemObject");
+        var markerPath = controlFilePath + (command === "pause" ? ".pause" : ".cancel");
+        if(!fso.FileExists(markerPath))
+        {
+            var stream = fso.CreateTextFile(markerPath, false, false);
+            stream.Close();
+        }
+        return true;
+    }
+    catch(e)
+    {
+        writeLog("ERROR sending operation command: " + e.message);
+        updateStatus("Unable to control operation");
+        return false;
+    }
+}
+
+function togglePauseOperation()
+{
+    if(!progressPollTimer) return;
+    if(!operationPaused)
+    {
+        if(!setControlCommand("pause")) return;
+        operationPaused = true;
+        operationPausedAt = new Date().getTime();
+        setText("operationState", "Pausing");
+        updateStatus("Pausing operation");
+    }
+    else
+    {
+        if(!clearPauseControlFile()) return;
+        operationPausedTotal += Math.max(0, new Date().getTime() - operationPausedAt);
+        operationPausedAt = 0;
+        operationPaused = false;
+        setText("operationState", "Running");
+        updateStatus("Resuming operation");
+    }
+    setOperationControlButtons(true);
+}
+
+function cancelOperation()
+{
+    if(!progressPollTimer) return;
+    var message = activeProgressTarget === "cleanup" ?
+        "Cancel cleanup? Files already moved will not be restored automatically." :
+        "Cancel the running operation? Partial scan results will not be saved.";
+    if(!confirm(message)) return;
+    if(!setControlCommand("cancel")) return;
+    setText("operationState", "Cancelling");
+    updateStatus("Cancelling operation...");
+}
+
+function setOperationControlButtons(running)
+{
+    running = running && (activeProgressTarget === "search" || activeProgressTarget === "duplicates" || activeProgressTarget === "largefiles");
+    var prefix = activeProgressTarget === "search" ? "search" : activeProgressTarget === "largefiles" ? "largeFiles" : "duplicate";
+    var pause = document.getElementById(prefix + "PauseButton");
+    var cancel = document.getElementById(prefix + "CancelButton");
+    if(pause)
+    {
+        pause.disabled = !running;
+        pause.innerText = operationPaused ? "Resume" : "Pause";
+    }
+    if(cancel) cancel.disabled = !running;
+}
+
+function formatElapsed(milliseconds)
+{
+    var seconds = Math.floor(Math.max(0, milliseconds) / 1000);
+    var minutes = Math.floor(seconds / 60);
+    seconds = seconds % 60;
+    return "Elapsed " + padNumber(minutes) + ":" + padNumber(seconds);
+}
+
+function getOperationElapsedMilliseconds(now)
+{
+    now = now || new Date().getTime();
+    var pausedDuration = operationPausedTotal;
+    if(operationPaused && operationPausedAt)
+        pausedDuration += Math.max(0, now - operationPausedAt);
+    return Math.max(0, now - operationStartedAt - pausedDuration);
+}
+
+function readResultFile()
+{
+    try
+    {
+        var fso = new ActiveXObject("Scripting.FileSystemObject");
+        if(!fso.FileExists(resultFilePath)) return null;
+        var content = readUtf8File(resultFilePath);
+        return content ? JSON.parse(content) : null;
+    }
+    catch(e)
+    {
+        return null;
+    }
+}
+
+function readUtf8File(path)
+{
+    var stream = new ActiveXObject("ADODB.Stream");
+    stream.Type = 2;
+    stream.Charset = "utf-8";
+    stream.Open();
+    stream.LoadFromFile(path);
+    var content = stream.ReadText();
+    stream.Close();
+    return content.replace(/^\uFEFF/, "");
+}
+
+function writeUtf8File(path, content)
+{
+    var stream = new ActiveXObject("ADODB.Stream");
+    stream.Type = 2;
+    stream.Charset = "utf-8";
+    stream.Open();
+    stream.WriteText(content);
+    stream.SaveToFile(path, 2);
+    stream.Close();
+}
+
+function restoreSettings()
+{
+    try
+    {
+        var fso = new ActiveXObject("Scripting.FileSystemObject");
+        if(!fso.FileExists(settingsFilePath)) return;
+        var settings = JSON.parse(readUtf8File(settingsFilePath));
+        var fields = {
+            searchRoot:"searchRoot",
+            searchText:"searchText",
+            searchExcluded:"searchExcluded",
+            searchMinSize:"searchMinSize",
+            searchMaxSize:"searchMaxSize",
+            searchExtensions:"searchExtensions",
+            searchModifiedAfter:"searchModifiedAfter",
+            searchModifiedBefore:"searchModifiedBefore",
+            reportsOutputFolder:"reportsOutputFolder",
+            duplicatesRoot:"duplicatesRoot",
+            duplicateSearchTerms:"duplicateSearchTerms",
+            duplicatesExcluded:"duplicatesExcluded",
+            cleanupMethod:"cleanupMethod",
+            largeFilesRoot:"largeFilesRoot",
+            largeFilesMinSize:"largeFilesMinSize",
+            largeFilesMaxSize:"largeFilesMaxSize",
+            largeFilesExcluded:"largeFilesExcluded",
+            largeFileCleanupMethod:"largeFileCleanupMethod",
+            recycleBinScope:"recycleBinScope"
+        };
+        for(var key in fields)
+        {
+            if(Object.prototype.hasOwnProperty.call(fields, key) && settings[key] !== undefined)
+            {
+                var field = document.getElementById(fields[key]);
+                if(field) field.value = settings[key];
+            }
+        }
+        recentSearchFolders = settings.recentSearchFolders instanceof Array ? settings.recentSearchFolders : [];
+        recentDuplicateFolders = settings.recentDuplicateFolders instanceof Array ? settings.recentDuplicateFolders : [];
+        scanProfiles = settings.scanProfiles instanceof Array ? settings.scanProfiles : [];
+        renderRecentFolders("search");
+        renderRecentFolders("duplicates");
+        renderScanProfiles();
+    }
+    catch(e)
+    {
+        writeLog("ERROR restoring saved settings: " + e.message);
+    }
+}
+
+function saveSettings()
+{
+    try
+    {
+        var shell = new ActiveXObject("WScript.Shell");
+        var fso = new ActiveXObject("Scripting.FileSystemObject");
+        var directory = shell.ExpandEnvironmentStrings("%APPDATA%") + "\\DuplicateCleaner";
+        if(!fso.FolderExists(directory)) fso.CreateFolder(directory);
+        var ids = ["searchRoot","searchText","searchExcluded","searchMinSize","searchMaxSize","searchExtensions","searchModifiedAfter","searchModifiedBefore","reportsOutputFolder","duplicatesRoot","duplicateSearchTerms","duplicatesExcluded","cleanupMethod","restoreConflictMode","largeFilesRoot","largeFilesMinSize","largeFilesMaxSize","largeFilesExcluded","largeFileCleanupMethod","recycleBinScope"];
+        var settings = {};
+        for(var i = 0; i < ids.length; i++)
+        {
+            var field = document.getElementById(ids[i]);
+            if(field) settings[ids[i]] = field.value;
+        }
+        settings.recentSearchFolders = recentSearchFolders;
+        settings.recentDuplicateFolders = recentDuplicateFolders;
+        settings.scanProfiles = scanProfiles;
+        writeUtf8File(settingsFilePath, JSON.stringify(settings));
+    }
+    catch(e)
+    {
+        writeLog("ERROR saving settings: " + e.message);
+    }
+}
+
+function getScanProfileFieldIds()
+{
+    return ["searchRoot","searchText","searchExcluded","searchMinSize","searchMaxSize","searchExtensions","searchModifiedAfter","searchModifiedBefore","duplicatesRoot","duplicateSearchTerms","duplicatesExcluded","cleanupMethod","largeFilesRoot","largeFilesMinSize","largeFilesMaxSize","largeFilesExcluded","largeFileCleanupMethod"];
+}
+
+function renderScanProfiles()
+{
+    var select = document.getElementById("scanProfileSelect");
+    if(!select) return;
+    var markup = '<option value="">Choose a saved profile</option>';
+    for(var i = 0; i < scanProfiles.length; i++)
+        markup += '<option value="' + i + '">' + escapeHtml(scanProfiles[i].name || ("Profile " + (i + 1))) + '</option>';
+    select.innerHTML = markup;
+}
+
+function saveScanProfile()
+{
+    var nameField = document.getElementById("scanProfileName");
+    var name = nameField ? (nameField.value || "").replace(/^\s+|\s+$/g, "") : "";
+    if(!name)
+    {
+        updateStatus("Enter a name for the scan profile");
+        return;
+    }
+    var profile = { name:name, values:{} };
+    var fieldIds = getScanProfileFieldIds();
+    for(var i = 0; i < fieldIds.length; i++)
+    {
+        var field = document.getElementById(fieldIds[i]);
+        if(field) profile.values[fieldIds[i]] = field.value;
+    }
+    var existingIndex = -1;
+    for(var p = 0; p < scanProfiles.length; p++)
+        if(String(scanProfiles[p].name || "").toLowerCase() === name.toLowerCase()) existingIndex = p;
+    if(existingIndex >= 0) scanProfiles[existingIndex] = profile;
+    else scanProfiles.push(profile);
+    renderScanProfiles();
+    var select = document.getElementById("scanProfileSelect");
+    if(select) select.value = String(existingIndex >= 0 ? existingIndex : scanProfiles.length - 1);
+    saveSettings();
+    updateStatus("Saved scan profile: " + name);
+    writeLog("Saved scan profile: " + name);
+}
+
+function applyScanProfile()
+{
+    var select = document.getElementById("scanProfileSelect");
+    var index = select ? Number(select.value) : -1;
+    if(!select || select.value === "" || !isFinite(index) || !scanProfiles[index]) return;
+    var values = scanProfiles[index].values || {};
+    var fieldIds = getScanProfileFieldIds();
+    for(var i = 0; i < fieldIds.length; i++)
+    {
+        var field = document.getElementById(fieldIds[i]);
+        if(field && values[fieldIds[i]] !== undefined) field.value = values[fieldIds[i]];
+    }
+    var nameField = document.getElementById("scanProfileName");
+    if(nameField) nameField.value = scanProfiles[index].name || "";
+    saveSettings();
+    updateStatus("Applied scan profile: " + scanProfiles[index].name);
+}
+
+function deleteScanProfile()
+{
+    var select = document.getElementById("scanProfileSelect");
+    var index = select ? Number(select.value) : -1;
+    if(!select || select.value === "" || !isFinite(index) || !scanProfiles[index])
+    {
+        updateStatus("Select a saved profile to delete");
+        return;
+    }
+    var name = scanProfiles[index].name || ("Profile " + (index + 1));
+    if(!confirm("Delete the saved profile '" + name + "'?")) return;
+    scanProfiles.splice(index, 1);
+    renderScanProfiles();
+    saveSettings();
+    updateStatus("Deleted scan profile: " + name);
+}
+
+function renderRecentFolders(kind)
+{
+    var field = document.getElementById(kind === "search" ? "searchRecentFolders" : "duplicatesRecentFolders");
+    var folders = kind === "search" ? recentSearchFolders : recentDuplicateFolders;
+    if(!field) return;
+    var options = '<option value="">Recent folders</option>';
+    for(var i = 0; i < folders.length; i++)
+        options += '<option value="' + escapeHtml(folders[i]) + '">' + escapeHtml(folders[i]) + '</option>';
+    field.innerHTML = options;
+}
+
+function rememberRecentFolder(kind, folder)
+{
+    var folders = kind === "search" ? recentSearchFolders : recentDuplicateFolders;
+    for(var i = folders.length - 1; i >= 0; i--)
+    {
+        if(String(folders[i]).toLowerCase() === folder.toLowerCase())
+            folders.splice(i, 1);
+    }
+    folders.unshift(folder);
+    if(folders.length > 5) folders.length = 5;
+    renderRecentFolders(kind);
+}
+
+function chooseRecentFolder(rootId, recentId)
+{
+    var recent = document.getElementById(recentId);
+    var target = document.getElementById(rootId);
+    if(recent && target && recent.value)
+    {
+        target.value = recent.value;
+        saveSettings();
+    }
+}
+
+function setProgressTarget(target)
+{
+    activeProgressTarget = target || "dashboard";
+    latestProgressMessage = "";
+    operationStartedAt = new Date().getTime();
+    operationPaused = false;
+    operationPausedAt = 0;
+    operationPausedTotal = 0;
+    var progressIds = { search:"searchProgressbar", duplicates:"progressbar", cleanup:"progressbar", cleanupLarge:"largeFilesProgressbar", largefiles:"largeFilesProgressbar", reports:"reportProgressbar", logs:"logsProgressbar", dashboard:"dashboardProgressbar" };
+    var messageIds = { search:"searchProgressMessage", duplicates:"duplicateProgressMessage", cleanup:"duplicateProgressMessage", cleanupLarge:"largeFilesProgressMessage", largefiles:"largeFilesProgressMessage", reports:"reportProgressMessage", logs:"logsProgressMessage", dashboard:"dashboardProgressMessage" };
+    var percentIds = { search:"searchProgressPercent", duplicates:"duplicateProgressPercent", cleanup:"duplicateProgressPercent", cleanupLarge:"largeFilesProgressPercent", largefiles:"largeFilesProgressPercent", reports:"reportProgressPercent", logs:"logsProgressPercent", dashboard:"dashboardProgressPercent" };
+    var countIds = { search:"searchMatchCount", duplicates:"duplicateCountStatus", cleanup:"duplicateCountStatus", cleanupLarge:"largeFilesCount", largefiles:"largeFilesCount" };
+    var progress = document.getElementById(progressIds[activeProgressTarget] || progressIds.dashboard);
+    if(progress) progress.style.width = "0%";
+
+    setText(messageIds[activeProgressTarget] || messageIds.dashboard, "Starting operation...");
+    setText(percentIds[activeProgressTarget] || percentIds.dashboard, "0%");
+    if(activeProgressTarget === "search" || activeProgressTarget === "duplicates" || activeProgressTarget === "largefiles")
+    {
+        var checkedId = activeProgressTarget === "search" ? "searchFilesChecked" : activeProgressTarget === "largefiles" ? "largeFilesChecked" : "duplicateFilesChecked";
+        var elapsedId = activeProgressTarget === "search" ? "searchElapsed" : activeProgressTarget === "largefiles" ? "largeFilesElapsed" : "duplicateElapsed";
+        setText(checkedId, "0 files checked");
+        setText(elapsedId, "Elapsed 00:00");
+    }
+    if(countIds[activeProgressTarget])
+        setText(countIds[activeProgressTarget], activeProgressTarget === "search" ? "0 matches" : (activeProgressTarget === "largefiles" || activeProgressTarget === "cleanupLarge") ? "0 files" : "0 duplicates");
+    setOperationControlButtons(true);
+    if(activeProgressTarget === "duplicates" || activeProgressTarget === "cleanup" || activeProgressTarget === "cleanupLarge" || activeProgressTarget === "largefiles")
+    {
+        var deleteButton = document.getElementById(activeProgressTarget === "largefiles" || activeProgressTarget === "cleanupLarge" ? "removeLargeFilesButton" : "deleteDuplicatesButton");
+        if(deleteButton) deleteButton.disabled = true;
+    }
+    setText("operationState", "Running");
+}
+
+function readProgressFile()
+{
+    try
+    {
+        var fso = new ActiveXObject("Scripting.FileSystemObject");
+        if(!fso.FileExists(progressFilePath))
+            return null;
+
+        var content = readUtf8File(progressFilePath);
+
+        if(!content || !content.trim())
+            return null;
+
+        var lines = content.split(/\r?\n/).filter(function(line){
+            return line && line.trim();
+        });
+
+        if(lines.length === 0)
+            return null;
+
+        var lastLine = lines[lines.length - 1];
+        return JSON.parse(lastLine);
+    }
+    catch(e)
+    {
+        return null;
+    }
+}
+
+function renderOperationFailure(target, message)
+{
+    var detail = message || "Operation failed. See activity log for details.";
+
+    if(target === "search")
+        setEmptyRow("searchResults", 4, detail);
+    else if(target === "duplicates")
+    {
+        setEmptyRow("duplicateResults", 5, detail);
+        var deleteButton = document.getElementById("deleteDuplicatesButton");
+        if(deleteButton) deleteButton.disabled = true;
+    }
+    else if(target === "reports")
+    {
+        setEmptyRow("reportResults", 3, detail);
+        setText("reportStatus", "Failed");
+        setText("reportLocation", detail);
+    }
+    else if(target === "logs")
+        setEmptyRow("logsResults", 3, detail);
+    else if(target === "largefiles")
+    {
+        setEmptyRow("largeFilesResults", 6, detail);
+        setText("largeFilesProgressMessage", detail);
+        var removeButton = document.getElementById("removeLargeFilesButton");
+        if(removeButton) removeButton.disabled = true;
+    }
+}
+
+function pollProgress()
+{
+    try
+    {
+        var data = readProgressFile();
+
+        if(!data)
+            return;
+
+        var progressIds = { search:"searchProgressbar", duplicates:"progressbar", cleanup:"progressbar", cleanupLarge:"largeFilesProgressbar", largefiles:"largeFilesProgressbar", reports:"reportProgressbar", logs:"logsProgressbar", dashboard:"dashboardProgressbar" };
+        var messageIds = { search:"searchProgressMessage", duplicates:"duplicateProgressMessage", cleanup:"duplicateProgressMessage", cleanupLarge:"largeFilesProgressMessage", largefiles:"largeFilesProgressMessage", reports:"reportProgressMessage", logs:"logsProgressMessage", dashboard:"dashboardProgressMessage" };
+        var percentIds = { search:"searchProgressPercent", duplicates:"duplicateProgressPercent", cleanup:"duplicateProgressPercent", cleanupLarge:"largeFilesProgressPercent", largefiles:"largeFilesProgressPercent", reports:"reportProgressPercent", logs:"logsProgressPercent", dashboard:"dashboardProgressPercent" };
+        var countIds = { search:"searchMatchCount", duplicates:"duplicateCountStatus", cleanup:"duplicateCountStatus", cleanupLarge:"largeFilesCount", largefiles:"largeFilesCount" };
+        var progress = document.getElementById(progressIds[activeProgressTarget] || progressIds.dashboard);
+
+        if(progress)
+        {
+            progress.style.width =
+                (data.percent || 0) + "%";
+        }
+
+        setText(messageIds[activeProgressTarget] || messageIds.dashboard, data.message || data.stage || "Working...");
+        setText(percentIds[activeProgressTarget] || percentIds.dashboard, (data.percent || 0) + "%");
+        if(countIds[activeProgressTarget] && data.count !== null && data.count !== undefined)
+            setText(countIds[activeProgressTarget], data.count + (activeProgressTarget === "search" ? " matches" : " files"));
+        if((activeProgressTarget === "search" || activeProgressTarget === "duplicates" || activeProgressTarget === "largefiles") && data.checked !== null && data.checked !== undefined)
+            setText(activeProgressTarget === "search" ? "searchFilesChecked" : activeProgressTarget === "largefiles" ? "largeFilesChecked" : "duplicateFilesChecked", data.checked + " files checked");
+        if(operationStartedAt && (activeProgressTarget === "search" || activeProgressTarget === "duplicates" || activeProgressTarget === "largefiles"))
+            setText(activeProgressTarget === "search" ? "searchElapsed" : activeProgressTarget === "largefiles" ? "largeFilesElapsed" : "duplicateElapsed", formatElapsed(getOperationElapsedMilliseconds()));
+        setText("operationState", data.stage || "Running");
+
+        if(data.message)
+        {
+            updateStatus(data.stage + ": " + data.message);
+            if(latestProgressMessage !== data.stage)
+            {
+                latestProgressMessage = data.stage;
+                writeLog(data.stage + ": " + data.message);
+            }
+        }
+
+        if(data.stage && (data.stage.toLowerCase() === "completed" || data.stage.toLowerCase() === "failed" || data.stage.toLowerCase() === "cancelled"))
+        {
+            if(data.stage.toLowerCase() === "completed")
+            {
+                var resultData = readResultFile();
+                if(resultData) renderResultData(resultData);
+                else
+                {
+                    var failedTarget = activeProgressTarget === "cleanup" ? "duplicates" : activeProgressTarget === "cleanupLarge" ? "largefiles" : activeProgressTarget;
+                    var resultError = "Operation finished, but its results could not be read. Check the operation log.";
+                    renderOperationFailure(failedTarget, resultError);
+                    if(activeProgressTarget === "duplicates" || activeProgressTarget === "cleanup")
+                    {
+                        latestDuplicateGroups = [];
+                        duplicateSelectedPaths = {};
+                        setText("scanAnalysisSummary", resultError);
+                    }
+                    setText("operationState", "Result error");
+                    updateStatus(resultError);
+                    writeLog("ERROR: " + resultError);
+                }
+            }
+            else if(data.stage.toLowerCase() === "cancelled")
+            {
+                if(activeProgressTarget === "search")
+                    setEmptyRow("searchResults", 4, "Search cancelled. Partial results were not saved.");
+                else if(activeProgressTarget === "duplicates")
+                    setText("duplicateProgressMessage", "Scan cancelled. Existing results were kept.");
+                else if(activeProgressTarget === "largefiles")
+                    setText("largeFilesProgressMessage", "Scan cancelled. Existing results were kept.");
+                else if(activeProgressTarget === "cleanup" || activeProgressTarget === "cleanupLarge")
+                {
+                    var cleanupData = readResultFile();
+                    if(cleanupData) renderResultData(cleanupData);
+                }
+                updateStatus("Operation cancelled");
+            }
+            else
+            {
+                renderOperationFailure(activeProgressTarget === "cleanup" ? "duplicates" : activeProgressTarget === "cleanupLarge" ? "largefiles" : activeProgressTarget, data.message || "Operation failed.");
+            }
+            setText("operationState", data.stage);
+            if(progressPollTimer)
+            {
+                clearInterval(progressPollTimer);
+                progressPollTimer = null;
+            }
+            operationPaused = false;
+            operationPausedAt = 0;
+            setOperationControlButtons(false);
+            clearSelectedFilesFile();
+            if((activeProgressTarget === "duplicates" && data.stage.toLowerCase() !== "failed") ||
+                (activeProgressTarget === "cleanup" && data.stage.toLowerCase() === "completed"))
+            {
+                var remainingCandidates = renderDuplicateResults();
+                if(data.stage.toLowerCase() === "cancelled")
+                    setText("duplicateCountStatus", remainingCandidates + " duplicates (previous results)");
+            }
+            if(activeProgressTarget === "cleanupLarge")
+                renderLargeFileResults();
+        }
+    }
+    catch(e)
+    {
+        var progressError = describeScriptError(e);
+        writeLog("ERROR updating operation progress: " + progressError);
+        updateStatus("Unable to update operation progress: " + progressError);
+        stopProgressPolling();
+        operationPaused = false;
+        setOperationControlButtons(false);
+        setText("operationState", "UI error");
+    }
+}
+
+function startProgressPolling()
+{
+    if(progressPollTimer)
+    {
+        clearInterval(progressPollTimer);
+    }
+
+    progressPollTimer = setInterval(pollProgress, 500);
+}
+
+function stopProgressPolling()
+{
+    if(progressPollTimer)
+    {
+        clearInterval(progressPollTimer);
+        progressPollTimer = null;
+    }
+}
+
+function runScan(targetId)
+{
+    try
+    {
+        if(progressPollTimer)
+        {
+            writeLog("An operation is already running. Wait for it to finish before starting another.");
+            updateStatus("Operation already running");
+            return;
+        }
+        var folderValue =
+            getFolderValue(
+                targetId || "folder"
+            );
+
+        if(!folderValue || !folderValue.trim())
+        {
+            logFailedOperation("Scan", "", "A folder path is required.");
+            writeLog("ERROR: Please select a valid root folder.");
+            renderOperationFailure("duplicates", "Please select a folder to scan.");
+            updateStatus("Folder required");
+            return;
+        }
+
+        if(!folderExists(folderValue))
+        {
+            var folderError = "Folder not found: " + folderValue;
+            logFailedOperation("Scan", folderValue, folderError);
+            renderOperationFailure("duplicates", folderError);
+            writeLog("ERROR: " + folderError);
+            updateStatus("Folder not found");
+            return;
+        }
+
+        rememberRecentFolder("duplicates", folderValue);
+        var duplicateKeywords = getKeywordValue("duplicateSearchTerms");
+        var scanDetails = "Duplicate keywords: " + (duplicateKeywords || "(all files)") + "\r\n" +
+            "Exclusions: " + getExclusionValue("duplicatesExcluded");
+        if(!startOperationLog("Scan", folderValue, scanDetails))
+        {
+            writeLog("ERROR: Could not create an operation log in the logs folder.");
+            return;
+        }
+
+        clearProgressFile();
+        clearResultFile();
+        clearControlFile();
+        clearSelectedFilesFile();
+        saveSettings();
+        setProgressTarget(targetId ? "duplicates" : "dashboard");
+
+        updateStatus("Preparing scan");
+        writeLog("Starting background scan for: " + folderValue);
+
+        var command = createEmbeddedPowerShellCommand({
+            rootFolder: folderValue,
+            mode: "Scan",
+            searchPattern: duplicateKeywords,
+            excludedFolders: getExclusionValue("duplicatesExcluded"),
+            deleteDuplicates: false
+        });
+
+        var shell = new ActiveXObject("WScript.Shell");
+        shell.Run(command, 0, false);
+        startProgressPolling();
+
+        updateStatus("Scan started");
+    }
+    catch(e)
+    {
+        stopProgressPolling();
+        operationPaused = false;
+        setOperationControlButtons(false);
+        var scanError = describeScriptError(e);
+        writeLog("ERROR: " + scanError);
+        updateStatus("Scan failed: " + scanError);
+    }
+}
+
+function searchItems()
+{
+    if(progressPollTimer)
+    {
+        writeLog("An operation is already running.");
+        updateStatus("Operation already running");
+        return;
+    }
+
+    var search =
+        document.getElementById(
+            "searchText"
+        ).value;
+    search = getKeywordValue("searchText");
+
+    var folder =
+        getFolderValue("searchRoot");
+
+    if(!search || !search.trim())
+    {
+        logFailedOperation("Search", getFolderValue("searchRoot"), "Search term is required.");
+        writeLog("ERROR: Please enter a search term.");
+        updateStatus("Search term required");
+        return;
+    }
+
+    if(!folder || !folder.trim())
+    {
+        logFailedOperation("Search", "", "A folder path is required.", "Search term: " + search);
+        writeLog("ERROR: Please select a folder to search.");
+        renderOperationFailure("search", "Please select a folder to search.");
+        updateStatus("Folder required");
+        return;
+    }
+
+    if(!folderExists(folder))
+    {
+        var folderError = "Folder not found: " + folder;
+        logFailedOperation("Search", folder, folderError, "Search term: " + search);
+        renderOperationFailure("search", folderError);
+        writeLog("ERROR: " + folderError);
+        updateStatus("Folder not found");
+        return;
+    }
+
+    var filters;
+    try
+    {
+        filters = getSearchFilterOptions();
+    }
+    catch(e)
+    {
+        updateStatus(e.message);
+        writeLog("ERROR: " + e.message);
+        return;
+    }
+
+    rememberRecentFolder("search", folder);
+    latestSearchRows = [];
+    searchSelectedPaths = {};
+    setText("searchResultSummary", "0 shown; 0 total");
+    setEmptyRow("searchResults", 4, "Searching...");
+    saveSettings();
+
+    runPowerShellCommand(
+        "Search",
+        {
+            rootFolder: folder,
+            searchPattern: search,
+            excludedFolders: getExclusionValue("searchExcluded"),
+            searchMinBytes: filters.searchMinBytes,
+            searchMaxBytes: filters.searchMaxBytes,
+            searchExtensions: filters.searchExtensions,
+            searchModifiedAfter: filters.searchModifiedAfter,
+            searchModifiedBefore: filters.searchModifiedBefore
+        }
+    );
+
+    writeLog("Searching: " + search + " in " + folder);
+}
+
+function runReports(targetId)
+{
+    if(progressPollTimer)
+    {
+        writeLog("An operation is already running.");
+        updateStatus("Operation already running");
+        return;
+    }
+
+    var folderValue =
+        getFolderValue(targetId || "reportsRoot");
+    var reportDirectoryField = document.getElementById("reportsOutputFolder");
+    var reportDirectory = reportDirectoryField ? (reportDirectoryField.value || "").replace(/^\s+|\s+$/g, "") : "";
+
+    if(!folderValue || !folderValue.trim())
+    {
+        writeLog("ERROR: Please select a report folder.");
+        updateStatus("Folder required");
+        return;
+    }
+
+    if(reportDirectory && !folderExists(reportDirectory))
+    {
+        writeLog("ERROR: Report output folder not found: " + reportDirectory);
+        updateStatus("Report output folder not found");
+        return;
+    }
+
+    runPowerShellCommand(
+        "Reports",
+        {
+            rootFolder: folderValue,
+            searchPattern: targetId === "duplicatesRoot" ? getKeywordValue("duplicateSearchTerms") : "",
+            excludedFolders: targetId === "duplicatesRoot" ? getExclusionValue("duplicatesExcluded") : "",
+            reportDirectory: reportDirectory
+        }
+    );
+}
+
+function renderQuarantineBatches(batches)
+{
+    var selector = document.getElementById("quarantineBatchSelect");
+    var options = '<option value="">All batches</option>';
+    batches.sort(function(left, right){ return String(right.createdAt).localeCompare(String(left.createdAt)); });
+    for(var i = 0; i < batches.length; i++)
+        options += '<option value="' + escapeHtml(batches[i].batchId) + '">' + escapeHtml(batches[i].batchId) + " (" + escapeHtml(batches[i].itemCount) + ")" + '</option>';
+    selector.innerHTML = options;
+    renderQuarantineRows("");
+}
+
+function renderQuarantineRows(batchId)
+{
+    var target = document.getElementById("quarantineResults");
+    var rows = "";
+    var availableCount = 0;
+    var filteredCount = 0;
+    var selectedCount = 0;
+    for(var i = 0; i < latestQuarantineRows.length; i++)
+    {
+        var item = latestQuarantineRows[i];
+        if(batchId && item.BatchId !== batchId) continue;
+        filteredCount++;
+        if(item.Available) availableCount++;
+        if(quarantineSelectedPaths[item.QuarantinedPath]) selectedCount++;
+        rows += '<tr><td><input type="checkbox" onchange="toggleQuarantineSelection(' + i + ',this.checked)"' +
+            (item.Available ? "" : " disabled") +
+            (quarantineSelectedPaths[item.QuarantinedPath] ? " checked" : "") +
+            '></td><td>' + escapeHtml(item.Status) + (item.Available ? "" : " (unavailable)") +
+            '</td><td title="' + escapeHtml(item.OriginalPath) + '">' + escapeHtml(item.OriginalPath) +
+            '</td><td title="' + escapeHtml(item.QuarantinedPath) + '">' + escapeHtml(item.QuarantinedPath) +
+            '</td><td>' + formatBytes(item.Length) + '</td></tr>';
+    }
+    target.innerHTML = rows || '<tr><td class="empty-state" colspan="5">No quarantine entries in this batch.</td></tr>';
+    setText("quarantineSummary", filteredCount + " entries; " + availableCount + " available; " + selectedCount + " selected.");
+}
+
+function showQuarantineBatch(batchId)
+{
+    renderQuarantineRows(batchId || "");
+}
+
+function toggleQuarantineSelection(index, selected)
+{
+    var item = latestQuarantineRows[index];
+    if(!item || !item.Available) return;
+    if(selected) quarantineSelectedPaths[item.QuarantinedPath] = true;
+    else delete quarantineSelectedPaths[item.QuarantinedPath];
+    renderQuarantineRows(document.getElementById("quarantineBatchSelect").value || "");
+}
+
+function loadQuarantineBatches()
+{
+    if(progressPollTimer) return;
+    var quarantineDirectory;
+    try
+    {
+        quarantineDirectory = ensureApplicationQuarantineDirectory();
+    }
+    catch(e)
+    {
+        writeLog("ERROR accessing application quarantine: " + e.message);
+        updateStatus("Quarantine unavailable");
+        return;
+    }
+    runPowerShellCommand("ListQuarantine", { rootFolder:quarantineDirectory });
+}
+
+function restoreSelectedQuarantine()
+{
+    if(progressPollTimer) return;
+    var selected = [];
+    for(var i = 0; i < latestQuarantineRows.length; i++)
+    {
+        var item = latestQuarantineRows[i];
+        if(item.Available && quarantineSelectedPaths[item.QuarantinedPath])
+            selected.push({ BatchFolder:item.BatchFolder, QuarantinedPath:item.QuarantinedPath, OriginalPath:item.OriginalPath });
+    }
+    if(!selected.length)
+    {
+        updateStatus("Select quarantined files to restore");
+        return;
+    }
+    var modeField = document.getElementById("restoreConflictMode");
+    var recoveryMode = modeField ? modeField.value : "rename";
+    var conflictText = recoveryMode === "rename" ? "Existing original files will be preserved; restored copies will get a new name." : "Files with occupied original paths will be skipped.";
+    if(!confirm("Restore " + selected.length + " selected file(s)?\r\n" + conflictText))
+        return;
+    runPowerShellCommand("RestoreSelected", {
+        rootFolder:ensureApplicationQuarantineDirectory(),
+        selectedFilesJson:JSON.stringify(selected),
+        recoveryMode:recoveryMode
+    });
+}
+
+function runLogAction(targetId)
+{
+    if(progressPollTimer)
+    {
+        writeLog("An operation is already running.");
+        updateStatus("Operation already running");
+        return;
+    }
+
+    var folderValue =
+        getFolderValue(targetId || "logsRoot");
+
+    runPowerShellCommand(
+        "Logs",
+        { rootFolder: folderValue }
+    );
+}
+
+function deleteSelected()
+{
+    var selected = getSelectedDuplicateFiles();
+    if(!selected.length)
+    {
+        updateStatus("Select copies to remove");
+        return;
+    }
+
+    var methodField = document.getElementById("cleanupMethod");
+    var recoveryMode = methodField ? methodField.value : "recycle";
+    var destination = recoveryMode === "quarantine" ? "the application quarantine" :
+        recoveryMode === "permanent" ? "permanently delete them" : "the Recycle Bin";
+    var totalBytes = 0;
+    var confidentlyReclaimableBytes = 0;
+    var keeperPaths = [];
+    for(var i = 0; i < selected.length; i++)
+    {
+        totalBytes += selected[i].Length;
+        if(selected[i].HardLinkCount === 1) confidentlyReclaimableBytes += selected[i].Length;
+        if(keeperPaths.indexOf(selected[i].KeepPath) < 0) keeperPaths.push(selected[i].KeepPath);
+    }
+    var preview = "Process " + selected.length + " duplicate file(s), " + formatBytes(totalBytes) + " total data size.\r\nEstimated space recoverable by permanent deletion: " + formatBytes(confidentlyReclaimableBytes) + ".\r\nDestination: " + destination + ".\r\nThe selected keeper in each group will be protected.";
+    if(recoveryMode === "recycle")
+        preview += "\r\nThe files may continue using disk space until the Recycle Bin on their drive is emptied.";
+    else if(recoveryMode === "quarantine")
+        preview += "\r\nQuarantine may use storage on the same drive.";
+    if(keeperPaths.length)
+    {
+        preview += "\r\n\r\nKeep copies:\r\n";
+        var keeperLimit = Math.min(5, keeperPaths.length);
+        for(var k = 0; k < keeperLimit; k++) preview += keeperPaths[k] + "\r\n";
+        if(keeperPaths.length > keeperLimit) preview += "...and " + (keeperPaths.length - keeperLimit) + " more.";
+    }
+    if(!confirm(preview + "\r\n\r\nContinue?"))
+        return;
+    if(recoveryMode === "permanent")
+    {
+        var acknowledgement = prompt("Permanent deletion cannot be undone. Type DELETE to confirm.");
+        if(acknowledgement !== "DELETE")
+        {
+            updateStatus("Permanent deletion cancelled");
+            return;
+        }
+    }
+
+    saveSettings();
+    runPowerShellCommand("DeleteSelected", {
+        rootFolder: getFolderValue("duplicatesRoot"),
+        searchPattern: "",
+        excludedFolders: getExclusionValue("duplicatesExcluded"),
+        selectedFilesJson: JSON.stringify(selected),
+        recoveryMode: recoveryMode
+    });
+    writeLog("Processing " + selected.length + " selected duplicate file(s): " + destination + ".");
+}
+
+function emptyRecycleBin()
+{
+    if(progressPollTimer)
+    {
+        updateStatus("Wait for the current operation to finish before emptying the Recycle Bin");
+        return;
+    }
+    var scopeField = document.getElementById("recycleBinScope");
+    var scope = scopeField ? scopeField.value : "scanDrive";
+    updateRecycleBinScopeSummary();
+    var rootPath = "ALL";
+    var description = "all drives";
+    if(scope !== "allDrives")
+    {
+        var scanFolder = getFolderValue("duplicatesRoot");
+        var driveMatch = /^([A-Za-z]:\\)/.exec(scanFolder);
+        if(!driveMatch)
+        {
+            updateStatus("Select a local drive scan folder or choose all drives");
+            return;
+        }
+        rootPath = driveMatch[1];
+        description = rootPath;
+    }
+    if(!confirm("Permanently delete all items in the Recycle Bin for " + description + "?\r\n\r\nThis cannot be undone."))
+        return;
+    runPowerShellCommand("EmptyRecycleBin", { rootFolder:"Recycle Bin", recycleBinRoot:rootPath });
+}
+
+function updateRecycleBinScopeSummary()
+{
+    var field = document.getElementById("recycleBinScope");
+    var scope = field ? field.value : "scanDrive";
+    if(scope === "allDrives")
+        setText("recycleBinScopeSummary", "Warning: All Recycle Bin contents on every drive will be permanently deleted.");
+    else
+    {
+        var match = /^([A-Za-z]:\\)/.exec(getFolderValue("duplicatesRoot"));
+        setText("recycleBinScopeSummary", match ?
+            "Only the Recycle Bin on " + match[1] + " will be emptied." :
+            "Scope follows the drive containing the selected duplicate scan folder.");
+    }
+}
+
+function showPage(pageId,element)
+{
+    var pages =
+        document.getElementsByClassName(
+            "page"
+        );
+
+    for(var i=0;i<pages.length;i++)
+    {
+        pages[i].style.display =
+            "none";
+    }
+
+    document.getElementById(
+        pageId
+    ).style.display =
+        "block";
+
+    var nav =
+        document.getElementsByClassName(
+            "nav-item"
+        );
+
+    for(var j=0;j<nav.length;j++)
+    {
+        nav[j].className =
+            "nav-item";
+    }
+
+    element.className =
+        "nav-item active";
+}
+
+function syncLayout()
+{
+    var header =
+        document.querySelector(
+            ".header"
+        );
+
+    var status =
+        document.getElementById(
+            "statusText"
+        );
+
+    var container =
+        document.querySelector(
+            ".container"
+        );
+
+    if(!header || !container)
+        return;
+
+    var headerHeight =
+        header.offsetHeight || 72;
+
+    var statusHeight =
+        status ? status.offsetHeight : 32;
+
+    var viewportHeight =
+        window.innerHeight ||
+        document.documentElement.clientHeight ||
+        screen.availHeight;
+
+    var targetHeight =
+        Math.max(
+            viewportHeight - headerHeight - statusHeight,
+            420
+        );
+
+    container.style.height =
+        targetHeight + "px";
+}
+
+window.addEventListener(
+    "resize",
+    syncLayout
+);
+
+window.onload=function()
+{
+    syncLayout();
+    restoreSettings();
+
+    try
+    {
+        document.getElementById("logsRoot").value = ensureApplicationLogDirectory();
+    }
+    catch(e)
+    {
+        writeLog("ERROR creating application log folder: " + e.message);
+    }
+
+    setEmptyRow("searchResults", 4, "Run a search to see matching files.");
+    setEmptyRow("duplicateResults", 5, "Run a preview to see duplicate candidates.");
+    setEmptyRow("largeFilesResults", 6, "Run a large-file scan to see eligible files.");
+    setEmptyRow("reportResults", 3, "Generate a CSV to review duplicate candidates.");
+    setEmptyRow("logsResults", 3, "Load log files from a selected folder.");
+    setText("searchResultSummary", "0 results");
+    setText("duplicateResultSummary", "0 groups");
+    setText("duplicateSelectionSummary", "0 selected; 0 removable copies");
+    setText("largeFilesSummary", "0 files");
+    setText("largeFileSelectionSummary", "0 selected; estimated reclaim 0 B.");
+    renderScanProfiles();
+    updateRecycleBinScopeSummary();
+
+    var settingsFields = ["searchRoot","searchText","searchExcluded","searchMinSize","searchMaxSize","searchExtensions","searchModifiedAfter","searchModifiedBefore","reportsOutputFolder","duplicatesRoot","duplicateSearchTerms","duplicatesExcluded","cleanupMethod","restoreConflictMode","largeFilesRoot","largeFilesMinSize","largeFilesMaxSize","largeFilesExcluded","largeFileCleanupMethod","recycleBinScope"];
+    for(var i = 0; i < settingsFields.length; i++)
+    {
+        var settingsField = document.getElementById(settingsFields[i]);
+        if(settingsField) settingsField.onchange = saveSettings;
+    }
+
+    writeLog(
+        "Application Ready"
+    );
+};
+
+</script>
+
+</body>
+</html>
